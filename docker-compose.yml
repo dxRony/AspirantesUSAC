@@ -1,0 +1,29 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: aspirantes-mongodb
+    restart: always
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: aspirantes_db
+    volumes:
+      - mongo_data:/data/db
+
+  neo4j:
+    image: neo4j:5.20-community
+    container_name: aspirantes-neo4j
+    restart: always
+    ports:
+      - '7474:7474' # Browser HTTP
+      - '7687:7687' # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/dxrony
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+
+volumes:
+  mongo_data:
+  neo4j_data:
+  neo4j_logs:

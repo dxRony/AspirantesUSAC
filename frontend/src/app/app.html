@@ -1,0 +1,57 @@
+<header class="navbar-custom">
+  <div style="display: flex; align-items: center; gap: 1rem;">
+    <h2 class="lbl-1" style="margin: 0; font-size: 1.5rem;">🔵🔴 Aspirantes USAC</h2>
+    <span style="background: var(--barca-yellow); color: var(--barca-dark); font-size: 0.75rem; font-weight: bold; padding: 0.2rem 0.6rem; border-radius: 12px;">Bases de Datos 2</span>
+  </div>
+  <nav style="display: flex; align-items: center; gap: 1rem;">
+    <a routerLink="/" class="nav-link active">Dashboard</a>
+    <a routerLink="/etl" class="nav-link">Carga CSV (ETL)</a>
+    <a routerLink="/search" class="nav-link">Buscador</a>
+    <a routerLink="/graphs" class="nav-link">Explorador Grafos (Neo4j)</a>
+  </nav>
+</header>
+
+<main class="main" style="flex-direction: column; justify-content: flex-start; padding: 2rem;">
+  <div style="max-width: 900px; width: 100%;">
+    <div class="card-barca" style="text-align: center; margin-bottom: 2rem;">
+      <h1 class="lbl-1" style="color: var(--barca-dark); margin-top: 0;">Plataforma de Análisis de Aspirantes USAC</h1>
+      <p style="font-size: 1.1rem; color: #2b2b2b; margin-bottom: 1.5rem;">
+        Facultad de Ingeniería • Integración NoSQL con MongoDB y Neo4j
+      </p>
+      <button class="btn-start" style="font-size: 1rem;">
+        Explorar Estadísticas
+      </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; text-align: left;">
+      <div class="feature-card">
+        <h3 style="color: var(--barca-yellow); margin-top: 0;">📊 MongoDB Analytics</h3>
+        <p style="font-size: 0.95rem; line-height: 1.5;">
+          20 consultas analíticas avanzadas, colecciones agregadas, distribución por carrera, edad, institución y aprobación.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3 style="color: var(--barca-yellow); margin-top: 0;">🕸️ Neo4j Graph Explorer</h3>
+        <p style="font-size: 0.95rem; line-height: 1.5;">
+          Exploración interactiva de grafos de aspirantes, carreras, materias y procedencia geográfica en tiempo real.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <h3 style="color: var(--barca-yellow); margin-top: 0;">⚡ Pipeline ETL</h3>
+        <p style="font-size: 0.95rem; line-height: 1.5;">
+          Procesamiento masivo de archivos CSV con métricas de tiempo, registros válidos y log de errores.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="footer-barca">
+  <p style="margin: 0; font-size: 0.9rem;">
+    Proyecto Final Bases de Datos 2 - Universidad de San Carlos de Guatemala • 2026
+  </p>
+</footer>
