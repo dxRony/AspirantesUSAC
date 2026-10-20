@@ -1,0 +1,158 @@
+:root {
+    --barca-blue: #004D98;
+    --barca-red: #A50044;
+    --barca-yellow: #FFC107;
+
+    --barca-blue-dark: #003366;
+    --barca-red-dark: rgba(0, 0, 0, 0.59);
+    --barca-yellow-dark: #E0A800;
+
+    --barca-white: #FFFFFF;
+    --barca-light: #F4F6F9;
+    --barca-dark: #212529;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, var(--barca-blue) 0%, var(--barca-red) 100%);
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+main {
+    flex: 1;
+}
+
+.main {
+    color: var(--barca-white);
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+/* boton principal */
+.btn-start {
+    background-color: var(--barca-yellow);
+    color: var(--barca-dark);
+    font-weight: bold;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+}
+
+.btn-start:hover {
+    background-color: var(--barca-yellow-dark);
+    color: var(--barca-white);
+    transform: translateY(-2px);
+}
+
+/* navbar */
+.navbar-custom {
+    background-color: var(--barca-blue-dark);
+}
+
+.navbar-custom .nav-link {
+    color: var(--barca-white);
+    font-weight: 500;
+}
+
+.navbar-custom .nav-link:hover {
+    color: var(--barca-yellow);
+}
+
+/* card para el form */
+.card-barca {
+    background: linear-gradient(
+        145deg,
+        rgba(255, 193, 7, 0.92),
+        rgba(224, 168, 0, 0.95)
+    );
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    color: var(--barca-dark);
+}
+
+.card-barca .form-control {
+    border: none;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.card-barca label {
+    color: #2b2b2b;
+}
+
+/* enlaces */
+a {
+    color: var(--barca-yellow);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--barca-white);
+}
+
+/* footer */
+.footer-barca {
+    background-color: var(--barca-red-dark);
+    color: white;
+    text-align: center;
+    padding: 1rem;
+}
+
+.feature-card {
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    border-radius: 18px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* tabla */
+.table-barca {
+    background-color: var(--barca-yellow-dark);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-barca thead {
+    background: linear-gradient(90deg, var(--barca-blue), var(--barca-red));
+    color: var(--barca-white);
+    text-align: center;
+}
+
+.table-barca tbody tr:hover {
+    background-color: rgba(0, 77, 152, 0.08);
+    transition: background 0.2s ease;
+}
+
+.table-barca td, .table-barca th {
+    vertical-align: middle;
+}
+
+/* Etiqueta principal */
+.lbl-1 {
+    color: var(--barca-white);
+    font-weight: 700;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.navbar {
+    position: relative;
+    z-index: 2000;
+}
+
+.dropdown-menu {
+    z-index: 3000;
+}
