@@ -8,11 +8,8 @@ export class Evaluacion {
   @Prop({ required: true, index: true })
   correlativo_aspirante: string;
 
-  @Prop({ required: true, type: Date })
+  @Prop({ required: true, type: Date, index: true })
   fecha_asignacion: Date;
-
-  @Prop({ required: true, type: Number })
-  mes_asignacion: number;
 
   @Prop({ required: true, default: 'NO DEFINIDO' })
   sexo: string;
@@ -36,7 +33,7 @@ export class Evaluacion {
   aprobacion: string;
 
   @Prop({ required: true, type: Boolean, index: true })
-  es_aprobado: boolean;
+  aprobo: boolean;
 
   @Prop({ required: true, default: 'NINGUNO', index: true })
   carrera_objetivo: string;
@@ -51,21 +48,15 @@ export class Evaluacion {
   tipo_institucion_educativa: string;
 
   @Prop({ required: true, type: Boolean, default: false, index: true })
-  es_institucion_publica: boolean;
-
-  @Prop({ required: true })
-  archivo_origen: string;
-
-  @Prop({ required: true, type: Date, default: Date.now })
-  fecha_carga: Date;
+  es_publica: boolean;
 }
 
 export const EvaluacionSchema = SchemaFactory.createForClass(Evaluacion);
 
 // indices para consultas analiticas
-EvaluacionSchema.index({ materia: 1, aprobacion: 1 });
+EvaluacionSchema.index({ materia: 1, aprobo: 1 });
 EvaluacionSchema.index({ carrera_objetivo: 1, anio_de_ingreso: 1 });
 EvaluacionSchema.index({ departamento_institucion_educativa: 1, municipio_institucion_educativa: 1 });
-EvaluacionSchema.index({ tipo_institucion_educativa: 1, es_institucion_publica: 1 });
-EvaluacionSchema.index({ mes_asignacion: 1, materia: 1, es_institucion_publica: 1 });
+EvaluacionSchema.index({ tipo_institucion_educativa: 1, es_publica: 1 });
+EvaluacionSchema.index({ fecha_asignacion: 1, materia: 1, es_publica: 1 });
 EvaluacionSchema.index({ correlativo_aspirante: 1, materia: 1 });

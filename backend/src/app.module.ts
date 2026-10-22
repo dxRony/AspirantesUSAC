@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Neo4jModule } from './database/neo4j/neo4j.module';
 import { EtlModule } from './etl/etl.module';
+import { ConsultasMongodbModule } from './consultas-mongodb/consultas-mongodb.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { EtlModule } from './etl/etl.module';
     }),
     Neo4jModule,
     EtlModule,
+    ConsultasMongodbModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -29,6 +31,6 @@ export class AppModule implements OnModuleInit {
   constructor(private readonly configService: ConfigService) { }
 
   async onModuleInit() {
-    console.log('Módulo Principal Inicializado con soporte para MongoDB, Neo4j y ETL.');
+    console.log('Módulo Principal Inicializado con soporte para MongoDB, Neo4j, ETL y Consultas Analíticas.');
   }
 }
