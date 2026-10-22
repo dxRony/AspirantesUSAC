@@ -17,7 +17,7 @@ MERGE (a)-[r:EVALUADO_EN { intento: fila.numero_de_fecha_de_evaluacion, anio: fi
 SET
   r.fecha = fila.fecha_asignacion_str,
   r.resultado = fila.aprobacion,
-  r.es_aprobado = fila.es_aprobado
+  r.aprobo = fila.aprobo
 
 // Nodo Carrera y relación ASPIRA_A
 FOREACH (_ IN CASE WHEN fila.carrera_objetivo IS NOT NULL AND fila.carrera_objetivo <> '' AND fila.carrera_objetivo <> 'NINGUNO' THEN [1] ELSE [] END |
@@ -28,7 +28,7 @@ FOREACH (_ IN CASE WHEN fila.carrera_objetivo IS NOT NULL AND fila.carrera_objet
 // Nodo TipoInstitucion y relación PROVIENE_DE
 FOREACH (_ IN CASE WHEN fila.tipo_institucion_educativa IS NOT NULL AND fila.tipo_institucion_educativa <> '' AND fila.tipo_institucion_educativa <> 'SIN REGISTRO' THEN [1] ELSE [] END |
   MERGE (t:TipoInstitucion { tipo: fila.tipo_institucion_educativa })
-  ON CREATE SET t.es_publica = fila.es_institucion_publica
+  ON CREATE SET t.es_publica = fila.es_publica
   MERGE (a)-[:PROVIENE_DE]->(t)
 )
 

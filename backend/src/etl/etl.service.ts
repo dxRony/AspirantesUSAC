@@ -86,7 +86,7 @@ export class EtlService {
         fila++;
         totalLeidos++;
 
-        const resultado = this.validarYTransformar(filaCruda, nombreOriginal, registroCarga.fecha_inicio);
+        const resultado = this.validarYTransformar(filaCruda);
 
         if (!resultado.valido) {
           totalRechazados++;
@@ -178,12 +178,12 @@ export class EtlService {
    * metodo que valida y transforma una fila del archivo CSV:
    * consideraciones :
    * - limpieza de anio_nacimiento 'SIN REGISTRO' -> null
-   * - cálculo de edad = anio_de_ingreso - anio_nacimiento
-   * - conversión de aprobacion a bandera booleana es_aprobado
-   * - detección de institución pública booleano: es_institucion_publica
-   * - normalización de mayúsculas, espacios y valores por defecto
+   * - calculo de edad = anio_de_ingreso - anio_nacimiento
+   * - conversion de aprobacion a bandera booleana aprobo
+   * - deteccion de institución pública booleano: es_publica
+   * - normalizacion de mayúsculas, espacios y valores por defecto
    */
-  private validarYTransformar(filaCruda: Record<string, any>, archivoOrigen: string, fechaCarga: Date,): ResultadoValidacion {
+  private validarYTransformar(filaCruda: Record<string, any>): ResultadoValidacion {
     // validacion de correlativo de aspirante
     const correlativo = String(filaCruda['correlativo_aspirante'] || '').trim();
     if (!correlativo) {
@@ -289,7 +289,6 @@ export class EtlService {
     const documentoMongo = {
       correlativo_aspirante: correlativo,
       fecha_asignacion: fechaParseada.fecha,
-      mes_asignacion: fechaParseada.mes,
       sexo,
       anio_nacimiento: anioNacimiento,
       edad,
@@ -297,14 +296,12 @@ export class EtlService {
       numero_de_fecha_de_evaluacion: numeroIntento,
       anio_de_ingreso: anioIngreso,
       aprobacion: aprobacionNormalizada,
-      es_aprobado: esAprobado,
+      aprobo: esAprobado,
       carrera_objetivo: carrera,
       departamento_institucion_educativa: departamento,
       municipio_institucion_educativa: municipio,
       tipo_institucion_educativa: tipoInstitucion,
-      es_institucion_publica: esPublica,
-      archivo_origen: archivoOrigen,
-      fecha_carga: fechaCarga,
+      es_publica: esPublica,
     };
 
     // documento para neo4j
@@ -318,10 +315,10 @@ export class EtlService {
       anio_de_ingreso: anioIngreso,
       fecha_asignacion_str: fechaAsignacionStr,
       aprobacion: aprobacionNormalizada,
-      es_aprobado: esAprobado,
+      aprobo: esAprobado,
       carrera_objetivo: carrera,
       tipo_institucion_educativa: tipoInstitucion,
-      es_institucion_publica: esPublica,
+      es_publica: esPublica,
       municipio_institucion_educativa: municipio,
       departamento_institucion_educativa: departamento,
     };
@@ -329,7 +326,7 @@ export class EtlService {
     return {
       valido: true,
       documentoMongo,
-      documentoNeo4j,
+      documentoNeo4j
     };
   }
 
