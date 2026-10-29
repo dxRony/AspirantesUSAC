@@ -1,0 +1,127 @@
+<div class="buscador-container">
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Buscador de Aspirantes</h1>
+      <p class="page-subtitle">
+        Consulta el perfil demográfico completo, procedencia educativa y trayectoria en cada examen de admisión por correlativo.
+      </p>
+    </div>
+  </div>
+
+  <!-- Barra de Búsqueda -->
+  <div class="card-barca search-card">
+    <div class="search-form">
+      <label class="search-label">Ingresa el correlativo del aspirante:</label>
+      <div class="search-input-wrapper">
+        <input
+          type="text"
+          [(ngModel)]="terminoBusqueda"
+          (keyup.enter)="buscar()"
+          class="form-control search-input"
+          placeholder="Ingresa el correlativo del aspirante..."
+        />
+        <button (click)="buscar()" class="btn-start btn-search" [disabled]="!terminoBusqueda().trim() || cargando()">
+          <span *ngIf="!cargando()">Buscar Aspirante</span>
+          <span *ngIf="cargando()">Buscando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerta de Error -->
+  <div *ngIf="error()" class="alert-box error">
+    {{ error() }}
+  </div>
+
+  <!-- Estado de Carga -->
+  <div *ngIf="cargando()" class="loading-box">
+    <div class="spinner"></div>
+    <p>Buscando expediente en la base de datos documental...</p>
+  </div>
+
+  <!-- Expediente del Aspirante Encontrado -->
+  <div *ngIf="!cargando() && aspirante()" class="profile-layout">
+    <!-- Tarjeta Demográfica -->
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="avatar-badge">ASP</div>
+        <div>
+          <span class="tag-correlativo">Aspirante</span>
+          <h2 class="profile-id">{{ aspirante()?.correlativo_aspirante ?? aspirante()?._id }}</h2>
+        </div>
+      </div>
+
+      <div class="profile-details-grid">
+        <div class="detail-item">
+          <span class="d-label">Sexo:</span>
+          <span class="d-value">{{ aspirante()?.sexo === 'M' ? 'Masculino' : aspirante()?.sexo === 'F' ? 'Femenino' : aspirante()?.sexo }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Edad Registrada:</span>
+          <span class="d-value">{{ aspirante()?.edad ? (aspirante()?.edad + ' años') : 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Año Nacimiento:</span>
+          <span class="d-value">{{ aspirante()?.anio_nacimiento ?? 'Sin registro' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Carrera Objetivo:</span>
+          <span class="d-value highlight-carrera">{{ aspirante()?.carrera_objetivo }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Tipo Institución:</span>
+          <span class="d-value">{{ aspirante()?.tipo_institucion_educativa }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Municipio Origen:</span>
+          <span class="d-value">{{ aspirante()?.municipio_institucion_educativa }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Departamento:</span>
+          <span class="d-value">{{ aspirante()?.departamento_institucion_educativa }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Institución Pública:</span>
+          <span class="d-value">{{ aspirante()?.es_publica ? 'Sí (Oficial)' : 'No (Privada / Coopera)' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial de Evaluaciones -->
+    <div class="evaluations-card">
+      <h3 class="eval-title">Historial de Evaluaciones Realizadas</h3>
+
+      <div class="table-responsive">
+        <table class="table-barca">
+          <thead>
+            <tr>
+              <th>Materia</th>
+              <th>Intento</th>
+              <th>Fecha Asignación</th>
+              <th>Año Ingreso</th>
+              <th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ev of aspirante()?.evaluaciones">
+              <td><strong>{{ ev.materia }}</strong></td>
+              <td>{{ ev.numero_de_fecha_de_evaluacion ?? ev.intento }}</td>
+              <td>{{ ev.fecha_asignacion ? (ev.fecha_asignacion | date:'dd/MM/yyyy') : (ev.fecha ?? 'N/A') }}</td>
+              <td>{{ ev.anio_de_ingreso ?? ev.anio }}</td>
+              <td>
+                <span
+                  class="badge-result"
+                  [class.approved]="ev.aprobacion === 'APROBADO' || ev.resultado === 'APROBADO' || ev.aprobo === true"
+                  [class.failed]="ev.aprobacion === 'NO APROBADO' || ev.resultado === 'NO APROBADO' || ev.aprobo === false"
+                >
+                  {{ ev.aprobacion ?? ev.resultado }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

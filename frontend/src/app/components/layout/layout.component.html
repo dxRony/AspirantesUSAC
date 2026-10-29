@@ -1,0 +1,42 @@
+<!-- Barra de Navegacion -->
+<header class="navbar-custom">
+  <div class="navbar-brand-wrapper">
+    <a routerLink="/dashboard" class="brand-link" title="Ir al Dashboard (Panel Principal)">
+      <div>
+        <h2 class="brand-heading">Aspirantes USAC</h2>
+        <span class="brand-sub">Facultad de Ingeniería • FIUSAC</span>
+      </div>
+    </a>
+  </div>
+
+  <nav class="navbar-links">
+    <a routerLink="/etl" routerLinkActive="active" class="nav-link">
+      <span>Carga CSV</span>
+    </a>
+    <a routerLink="/mongodb" routerLinkActive="active" class="nav-link">
+      <span>MongoDB</span>
+    </a>
+    <a routerLink="/neo4j" routerLinkActive="active" class="nav-link">
+      <span>Grafos Neo4j</span>
+    </a>
+    <a routerLink="/buscador" routerLinkActive="active" class="nav-link">
+      <span>Buscador</span>
+    </a>
+  </nav>
+
+  <div class="navbar-actions">
+    <a routerLink="/" class="btn-home" title="Volver a la página de bienvenida">
+      <span class="btn-home-text">Inicio</span>
+    </a>
+  </div>
+</header>
+
+<!-- Contenedor Principal de Vistas -->
+<main class="system-main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Footer Delgado (Igual a la Landing Page) -->
+<footer class="system-footer">
+  <p>Proyecto Final - Bases de Datos 2 - {{ anioActual }}</p>
+</footer>

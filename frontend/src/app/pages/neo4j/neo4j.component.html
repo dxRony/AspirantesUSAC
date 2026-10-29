@@ -1,0 +1,182 @@
+<div class="neo4j-container">
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Explorador de Grafos en Neo4j</h1>
+      <p class="page-subtitle">
+        Visualización de relaciones complejas en tiempo real: recorridos jerárquicos, caminos de aprobación y redes egocéntricas de aspirantes.
+      </p>
+    </div>
+
+    <!-- Selector de Vista (Grafo vs Tabla) -->
+    <div class="view-toggle-bar">
+      <button
+        (click)="cambiarVista('grafo')"
+        class="toggle-btn"
+        [class.active]="vistaActiva() === 'grafo'"
+      >
+        Vista de Grafo
+      </button>
+      <button
+        (click)="cambiarVista('tabla')"
+        class="toggle-btn"
+        [class.active]="vistaActiva() === 'tabla'"
+      >
+        Métricas Tabulares
+      </button>
+    </div>
+  </div>
+
+  <!-- Pestañas de Consultas (1 a 6) -->
+  <div class="queries-tabs">
+    <button
+      *ngFor="let q of consultas"
+      (click)="cambiarConsulta(q.id)"
+      class="tab-btn"
+      [class.active]="consultaSeleccionada() === q.id"
+    >
+      <span class="q-badge">#{{ q.id }}</span>
+      <span>{{ q.titulo.split('(')[0] }}</span>
+    </button>
+  </div>
+
+  <!-- Barra de Filtros Interactivos -->
+  <div class="card-barca filters-card">
+    <div class="filter-header">
+      <span class="filter-title">Filtros Interactivos para la Consulta #{{ consultaSeleccionada() }}</span>
+      <button (click)="ejecutarConsulta()" class="btn-start btn-apply" [disabled]="cargando()">
+        Aplicar y Renderizar
+      </button>
+    </div>
+
+    <div class="filters-grid">
+      <!-- Filtro Carrera -->
+      <div *ngIf="tieneFiltro('carrera')" class="filter-group">
+        <label>Carrera Objetivo:</label>
+        <input
+          type="text"
+          [(ngModel)]="filtroCarrera"
+          class="form-control"
+          placeholder="Ej: INGENIERIA CIVIL"
+        />
+      </div>
+
+      <!-- Filtro Departamento -->
+      <div *ngIf="tieneFiltro('departamento')" class="filter-group">
+        <label>Departamento:</label>
+        <input
+          type="text"
+          [(ngModel)]="filtroDepartamento"
+          class="form-control"
+          placeholder="Ej: GUATEMALA, SACATEPEQUEZ"
+        />
+      </div>
+
+      <!-- Filtro Min Intentos -->
+      <div *ngIf="tieneFiltro('minIntentos')" class="filter-group">
+        <label>Mínimo de Intentos (>=):</label>
+        <input
+          type="number"
+          min="2"
+          max="5"
+          [(ngModel)]="filtroMinIntentos"
+          class="form-control"
+        />
+      </div>
+
+      <!-- Filtro Año -->
+      <div *ngIf="tieneFiltro('anio')" class="filter-group">
+        <label>Año de Ingreso:</label>
+        <input
+          type="text"
+          [(ngModel)]="filtroAnio"
+          class="form-control"
+          placeholder="Ej: 2015"
+        />
+      </div>
+
+      <!-- Filtro Correlativo -->
+      <div *ngIf="tieneFiltro('correlativo')" class="filter-group">
+        <label>Correlativo de Aspirante:</label>
+        <input
+          type="text"
+          [(ngModel)]="filtroCorrelativo"
+          class="form-control"
+          placeholder="Ej: asp_01"
+        />
+      </div>
+
+      <!-- Límite de nodos -->
+      <div *ngIf="tieneFiltro('limite')" class="filter-group">
+        <label>Límite de relaciones:</label>
+        <select [(ngModel)]="filtroLimite" class="form-control">
+          <option [ngValue]="20">20 relaciones</option>
+          <option [ngValue]="40">40 relaciones</option>
+          <option [ngValue]="70">70 relaciones</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerta de Error -->
+  <div *ngIf="error()" class="alert-box error">
+    {{ error() }}
+  </div>
+
+  <!-- Estado de Carga -->
+  <div *ngIf="cargando()" class="loading-box">
+    <div class="spinner"></div>
+    <p>Ejecutando recorrido Cypher en Neo4j...</p>
+  </div>
+
+  <!-- Área de Visualización: GRAFO INTERACTIVO -->
+  <div [hidden]="vistaActiva() !== 'grafo' || cargando()" class="graph-viewport-card">
+    <div class="graph-legend">
+      <span class="legend-item"><span class="legend-dot blue"></span> Carrera</span>
+      <span class="legend-item"><span class="legend-dot red"></span> Materia</span>
+      <span class="legend-item"><span class="legend-dot yellow"></span> Aspirante</span>
+      <span class="legend-item"><span class="legend-dot green"></span> Departamento</span>
+      <span class="legend-item"><span class="legend-dot cyan"></span> Municipio</span>
+      <span class="legend-item"><span class="legend-dot purple"></span> Institución</span>
+      <span class="legend-stats">
+        Nodos: <strong>{{ resultado()?.grafo?.nodes?.length ?? 0 }}</strong> |
+        Aristas: <strong>{{ resultado()?.grafo?.edges?.length ?? 0 }}</strong>
+      </span>
+    </div>
+
+    <!-- Contenedor de Vis.js Network -->
+    <div #graphContainer class="vis-network-canvas"></div>
+    <div class="canvas-help-hint">
+      <em>Tip: Puedes hacer zoom con la rueda del ratón, arrastrar nodos o hacer clic para inspeccionar conexiones.</em>
+    </div>
+  </div>
+
+  <!-- Área de Visualización: TABLA DE MÉTRICAS -->
+  <div *ngIf="vistaActiva() === 'tabla' && !cargando()" class="table-results-card">
+    <div class="results-header">
+      <span class="results-count">
+        Registros obtenidos: <strong>{{ resultado()?.total_registros ?? resultado()?.metricas?.length ?? 0 }}</strong>
+      </span>
+      <span class="engine-badge">Neo4j Cypher Traversal</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table-barca">
+        <thead>
+          <tr>
+            <th *ngFor="let col of obtenerColumnas(resultado()?.metricas)">
+              {{ col }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fila of resultado()?.metricas">
+            <td *ngFor="let col of obtenerColumnas(resultado()?.metricas)">
+              {{ fila[col] }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

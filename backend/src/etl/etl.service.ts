@@ -43,6 +43,23 @@ export class EtlService {
     const tiempoInicio = Date.now();
     const nombreOriginal = archivo.originalname || 'archivo.csv';
 
+    // verificando si el archivo ya fue cargado previamente con exito
+    const cargaPrevia = await this.modeloCargaHistorial.findOne({
+      nombre_archivo: nombreOriginal,
+      estado: 'COMPLETADO',
+    });
+
+    if (cargaPrevia) {
+      if (archivo.path && fs.existsSync(archivo.path)) {
+        try {
+          fs.unlinkSync(archivo.path);
+        } catch {
+          // ignorar error al eliminar archivo temporal
+        }
+      }
+      throw new BadRequestException(`El archivo '${nombreOriginal}' ya fue cargado previamente.`);
+    }
+
     // creando registro inicial de auditoría en cargas_historial
     const registroCarga = new this.modeloCargaHistorial({
       nombre_archivo: nombreOriginal,
@@ -204,7 +221,7 @@ export class EtlService {
     }
 
     // validando numero de fecha de evaluacion (intento)
-    const numeroIntento = parseInt(String(filaCruda['numero_de_fecha_de_evaluacion'] || '').trim(), 10);
+    const numeroIntento = parseInt(String(filaCruda['numero_de_fecha_de_evaluacion'] || filaCruda['numero_de_fecha_de_evaluaci'] || '').trim(), 10);
     if (isNaN(numeroIntento) || numeroIntento <= 0) {
       return {
         valido: false,
@@ -262,6 +279,8 @@ export class EtlService {
     let carrera = String(filaCruda['carrera_objetivo'] || '').trim().toUpperCase();
     if (!carrera || carrera === 'NULL' || carrera === 'UNDEFINED') {
       carrera = 'NINGUNO';
+    } else if (carrera.startsWith('INGENIERIA EN CIENCIAS Y')) {
+      carrera = 'INGENIERIA EN CIENCIAS Y SISTEMAS';
     }
 
     // normalizando institucion educativa
@@ -280,6 +299,51 @@ export class EtlService {
     let municipio = String(filaCruda['municipio_institucion_educativa'] || '').trim().toUpperCase();
     if (!municipio || municipio === 'NULL') {
       municipio = 'NO REGISTRADO';
+    } else if (
+      municipio.startsWith('GUATEMALA -') ||
+      municipio.includes('CIUDAD CAPITAL') ||
+      municipio === 'GUATEMALA - CIUDAD' ||
+      municipio === 'CIUDAD DE GUATEMALA'
+    ) {
+      municipio = 'GUATEMALA';
+    } else if (municipio.startsWith('SAN JUAN SACATEPEQ')) {
+      municipio = 'SAN JUAN SACATEPEQUEZ';
+    } else if (municipio.startsWith('SAN PEDRO SACATEPEQ')) {
+      municipio = 'SAN PEDRO SACATEPEQUEZ';
+    } else if (municipio.startsWith('SAN LUCAS SACATEPEQ')) {
+      municipio = 'SAN LUCAS SACATEPEQUEZ';
+    } else if (municipio.startsWith('SANTIAGO SACATEPEQ')) {
+      municipio = 'SANTIAGO SACATEPEQUEZ';
+    } else if (municipio.startsWith('ANTIGUA GUATEMAL')) {
+      municipio = 'ANTIGUA GUATEMALA';
+    } else if (municipio.startsWith('TECPAN GUATEMAL')) {
+      municipio = 'TECPAN GUATEMALA';
+    } else if (municipio === 'SANTA CATARINA' && (departamento === 'GUATEMALA' || departamento === 'NO REGISTRADO' || !departamento)) {
+      municipio = 'SANTA CATARINA PINULA';
+    } else if (municipio.startsWith('NUEVA CONCEPCIO')) {
+      municipio = 'NUEVA CONCEPCION';
+    } else if (municipio.startsWith('SANTA CRUZ DEL')) {
+      municipio = 'SANTA CRUZ DEL QUICHE';
+    } else if (municipio.startsWith('NUEVA SANTA')) {
+      municipio = 'NUEVA SANTA ROSA';
+    } else if (municipio === 'SANTA LUCIA') {
+      if (departamento === 'SACATEPEQUEZ') municipio = 'SANTA LUCIA MILPAS ALTAS';
+      else if (departamento === 'SOLOLA') municipio = 'SANTA LUCIA UTATLAN';
+      else municipio = 'SANTA LUCIA COTZUMALGUAPA';
+    } else if (municipio === 'SAN ANDRES') {
+      if (departamento === 'CHIMALTENANGO') municipio = 'SAN ANDRES ITZAPA';
+      else if (departamento === 'RETALHULEU') municipio = 'SAN ANDRES VILLA SECA';
+      else if (departamento === 'TOTONICAPAN') municipio = 'SAN ANDRES XECUL';
+      else if (departamento === 'PETEN') municipio = 'SAN ANDRES';
+      else municipio = 'SAN ANDRES SEMETABAJ';
+    } else if (municipio === 'MELCHOR DE') {
+      municipio = 'MELCHOR DE MENCOS';
+    } else if (municipio === 'SAN JOSE LA') {
+      municipio = 'SAN JOSE LA MAQUINA';
+    } else if (municipio === 'SANTA ROSA DE') {
+      municipio = 'SANTA ROSA DE LIMA';
+    } else if (municipio === 'SAN MIGUEL' && departamento === 'BAJA VERAPAZ') {
+      municipio = 'SAN MIGUEL CHICAJ';
     }
 
     // transformando fecha de asignacion
@@ -403,7 +467,7 @@ export class EtlService {
     if (norm.includes('materia')) return 'materia';
     if (norm.includes('sexo') || norm.includes('genero')) return 'sexo';
     if (norm.includes('nacimiento')) return 'anio_nacimiento';
-    if (norm.includes('evaluacion') || norm.includes('intento') || norm.includes('oportunidad'))
+    if (norm.includes('evaluac') || norm.includes('intento') || norm.includes('oportunidad'))
       return 'numero_de_fecha_de_evaluacion';
     if (norm.includes('ingreso')) return 'anio_de_ingreso';
     if (norm.includes('aprobacion') || norm.includes('resultado')) return 'aprobacion';

@@ -5,12 +5,12 @@ import {
   Delete,
   Param,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
   BadRequestException,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as os from 'os';
 import * as path from 'path';
@@ -28,7 +28,7 @@ export class EtlController {
   @Post('cargar')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(
-    FileInterceptor('file', {
+    AnyFilesInterceptor({
       storage: diskStorage({
         destination: os.tmpdir(),
         filename: (req, archivo, callback) => {
@@ -51,9 +51,11 @@ export class EtlController {
       },
     }),
   )
-  async cargarCsv(@UploadedFile() archivo: Express.Multer.File): Promise<RespuestaCargaDto> {
+  async cargarCsv(@UploadedFiles() archivos: Express.Multer.File[]): Promise<RespuestaCargaDto> {
+    const archivo = archivos?.find((a) => a.fieldname === 'file' || a.fieldname === 'archivo') || archivos?.[0];
+
     if (!archivo) {
-      throw new BadRequestException('debes adjuntar un archivo .csv en el campo "file".');
+      throw new BadRequestException('debes adjuntar un archivo .csv en el formulario.');
     }
 
     if (path.extname(archivo.originalname).toLowerCase() !== '.csv') {

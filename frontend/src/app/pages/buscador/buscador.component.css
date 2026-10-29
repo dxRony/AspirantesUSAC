@@ -1,0 +1,246 @@
+.buscador-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header .page-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 0.3rem 0;
+  color: var(--barca-white);
+}
+
+.page-header .page-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.search-card {
+  padding: 1.5rem;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.search-label {
+  font-weight: 700;
+  color: var(--barca-dark);
+  font-size: 1rem;
+}
+
+.search-input-wrapper {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.btn-search {
+  padding: 0.75rem 1.8rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.quick-examples {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.ex-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #343a40;
+}
+
+.ex-pill {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: var(--barca-dark);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ex-pill:hover {
+  background: var(--barca-blue);
+  color: var(--barca-white);
+}
+
+/* Profile Layout */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.profile-card {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.avatar-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--barca-blue), var(--barca-red));
+  border: 2px solid var(--barca-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--barca-white);
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.tag-correlativo {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--barca-yellow);
+  letter-spacing: 0.5px;
+}
+
+.profile-id {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--barca-white);
+  word-break: break-all;
+}
+
+.profile-details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.d-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.d-value {
+  color: var(--barca-white);
+  font-weight: 700;
+  text-align: right;
+}
+
+.highlight-carrera {
+  color: var(--barca-yellow);
+}
+
+/* Evaluations Card */
+.evaluations-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.eval-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--barca-white);
+}
+
+.table-responsive {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.badge-result {
+  padding: 0.25rem 0.65rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.badge-result.approved {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-result.failed {
+  background-color: #dc3545;
+  color: white;
+}
+
+.alert-box.error {
+  background: rgba(220, 53, 69, 0.3);
+  border: 1px solid #dc3545;
+  color: #f8d7da;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.loading-box {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid rgba(255, 193, 7, 0.2);
+  border-top-color: var(--barca-yellow);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 0.75rem auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}

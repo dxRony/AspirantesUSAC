@@ -1,0 +1,262 @@
+<div class="mongodb-container">
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Consultas Analíticas en MongoDB</h1>
+      <p class="page-subtitle">
+        Agregaciones estadísticas avanzadas, cálculos porcentuales, promedios y generación de la colección auxiliar
+        <code>resumen_carrera</code>.
+      </p>
+    </div>
+  </div>
+
+  <!-- Selector de Consultas Único (Dropdown) -->
+  <div class="queries-nav-card">
+    <label class="select-label">Seleccionar Consulta Analítica:</label>
+    <div class="query-select-row">
+      <select [ngModel]="consultaSeleccionada()?.id" (ngModelChange)="seleccionarPorId($event)"
+        class="form-control query-select">
+        <option *ngFor="let q of consultas" [ngValue]="q.id">
+          {{ q.titulo }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tarjeta de Detalle de la Consulta Seleccionada -->
+  <div *ngIf="consultaSeleccionada()" class="card-barca query-detail-card">
+    <div class="detail-header">
+      <div>
+        <h2 class="detail-title">{{ consultaSeleccionada()?.titulo }}</h2>
+        <p class="detail-desc">{{ consultaSeleccionada()?.descripcion }}</p>
+      </div>
+      <button *ngIf="!consultaSeleccionada()?.requiereParam" (click)="ejecutarConsulta()" class="btn-start btn-reload" [disabled]="cargando()">
+        Recargar
+      </button>
+    </div>
+
+    <!-- Parámetro Correlativo para consultas 11 y 15 -->
+    <div *ngIf="consultaSeleccionada()?.id === 11 || consultaSeleccionada()?.id === 15" class="param-bar">
+      <label>Correlativo de Aspirante:</label>
+      <div class="param-input-group">
+        <input
+          type="text"
+          [(ngModel)]="parametroInput"
+          (keyup.enter)="ejecutarConsulta()"
+          class="form-control"
+          placeholder="Ingresa el correlativo del aspirante..."
+        />
+        <button (click)="ejecutarConsulta()" class="btn-start btn-sm" [disabled]="!parametroInput.trim() || cargando()">
+          Buscar
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros Consulta 3: Año y Carrera (Ambos SELECT) -->
+    <div *ngIf="consultaSeleccionada()?.id === 3" class="filter-bar">
+      <div class="filter-group">
+        <label>Año de Ingreso:</label>
+        <select [(ngModel)]="filtroAnio" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todos los años</option>
+          <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Carrera Objetivo:</label>
+        <select [(ngModel)]="filtroCarrera" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button (click)="limpiarFiltros()" class="btn-secondary btn-sm" [disabled]="cargando()">
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros Consulta 7: Carrera y Tipo Institución (Ambos SELECT) -->
+    <div *ngIf="consultaSeleccionada()?.id === 7" class="filter-bar">
+      <div class="filter-group">
+        <label>Carrera Objetivo:</label>
+        <select [(ngModel)]="filtroCarrera" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Tipo Institución:</label>
+        <select [(ngModel)]="filtroTipoInst" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todos los tipos</option>
+          <option *ngFor="let t of tiposInstitucionDisponibles" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button (click)="limpiarFiltros()" class="btn-secondary btn-sm" [disabled]="cargando()">
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros Consulta 8: Departamento y Carrera (Ambos SELECT) -->
+    <div *ngIf="consultaSeleccionada()?.id === 8" class="filter-bar">
+      <div class="filter-group">
+        <label>Departamento:</label>
+        <select [(ngModel)]="filtroDepto" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todos los departamentos</option>
+          <option *ngFor="let d of departamentosDisponibles" [value]="d">{{ d }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Carrera Objetivo:</label>
+        <select [(ngModel)]="filtroCarrera" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button (click)="limpiarFiltros()" class="btn-secondary btn-sm" [disabled]="cargando()">
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros Consulta 12: Sexo y Tipo Institución (Ambos SELECT) -->
+    <div *ngIf="consultaSeleccionada()?.id === 12" class="filter-bar">
+      <div class="filter-group">
+        <label>Sexo:</label>
+        <select [(ngModel)]="filtroSexo" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todos</option>
+          <option value="M">Masculino (M)</option>
+          <option value="F">Femenino (F)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Tipo Institución:</label>
+        <select [(ngModel)]="filtroTipoInst" (change)="ejecutarConsulta()" class="form-control form-control-sm">
+          <option value="">Todos los tipos</option>
+          <option *ngFor="let t of tiposInstitucionDisponibles" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button (click)="limpiarFiltros()" class="btn-secondary btn-sm" [disabled]="cargando()">
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerta de Error -->
+  <div *ngIf="error()" class="alert-box error">
+    {{ error() }}
+  </div>
+
+  <!-- Estado de Carga -->
+  <div *ngIf="cargando()" class="loading-box">
+    <div class="spinner"></div>
+    <p>Ejecutando aggregation pipeline en MongoDB...</p>
+  </div>
+
+  <!-- Resultados de la Consulta -->
+  <div *ngIf="!cargando() && resultado()" class="results-area">
+    <div class="results-header">
+      <span class="results-count">
+        Total de registros obtenidos: <strong>{{ obtenerTotalRegistros() }}</strong>
+      </span>
+    </div>
+
+    <!-- Vista Especial para Consulta 15 (Historial Completo de un Aspirante) -->
+    <div *ngIf="resultado()?.datos_aspirante" class="aspirante-detail-view">
+      <div class="aspirante-profile-card">
+        <h4 class="aspirante-profile-title">Datos Demográficos del Aspirante</h4>
+        <div class="aspirante-grid">
+          <div class="aspirante-field">
+            <span class="field-label">Correlativo:</span>
+            <span class="field-value">{{ resultado().datos_aspirante.correlativo_aspirante }}</span>
+          </div>
+          <div class="aspirante-field">
+            <span class="field-label">Carrera Objetivo:</span>
+            <span class="field-value highlight-text">{{ resultado().datos_aspirante.carrera_objetivo || 'NINGUNO' }}</span>
+          </div>
+          <div class="aspirante-field">
+            <span class="field-label">Sexo:</span>
+            <span class="field-value">{{ resultado().datos_aspirante.sexo === 'M' ? 'Masculino (M)' : (resultado().datos_aspirante.sexo === 'F' ? 'Femenino (F)' : resultado().datos_aspirante.sexo) }}</span>
+          </div>
+          <div class="aspirante-field">
+            <span class="field-label">Edad / Año Nacimiento:</span>
+            <span class="field-value">
+              {{ resultado().datos_aspirante.edad ? resultado().datos_aspirante.edad + ' años' : 'Sin registro' }}
+              <span *ngIf="resultado().datos_aspirante.anio_nacimiento">({{ resultado().datos_aspirante.anio_nacimiento }})</span>
+            </span>
+          </div>
+          <div class="aspirante-field">
+            <span class="field-label">Procedencia Educativa:</span>
+            <span class="field-value">{{ resultado().datos_aspirante.municipio_institucion_educativa }}, {{ resultado().datos_aspirante.departamento_institucion_educativa }}</span>
+          </div>
+          <div class="aspirante-field">
+            <span class="field-label">Tipo Institución:</span>
+            <span class="field-value">
+              {{ resultado().datos_aspirante.tipo_institucion_educativa }}
+              ({{ resultado().datos_aspirante.es_publica ? 'Pública' : 'Privada / Otra' }})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-header" style="margin-top: 1rem;">
+        <span class="results-count">
+          Historial de Evaluaciones Realizadas (Total: <strong>{{ resultado().evaluaciones?.length || 0 }}</strong>)
+        </span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table-barca">
+          <thead>
+            <tr>
+              <th>materia</th>
+              <th>intento</th>
+              <th>anio_de_ingreso</th>
+              <th>fecha_asignacion</th>
+              <th>aprobacion</th>
+              <th>aprobo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ev of resultado().evaluaciones">
+              <td><strong>{{ ev.materia }}</strong></td>
+              <td>{{ ev.intento }}</td>
+              <td>{{ ev.anio_de_ingreso }}</td>
+              <td>{{ formatearValor(ev.fecha_asignacion) }}</td>
+              <td>
+                <span [style.color]="ev.aprobo ? '#4caf50' : '#ff5252'" style="font-weight: 700;">
+                  {{ ev.aprobacion }}
+                </span>
+              </td>
+              <td>{{ ev.aprobo ? 'Sí' : 'No' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Vista Estándar (Tablas para el resto de consultas) -->
+    <div *ngIf="!resultado()?.datos_aspirante" class="table-responsive">
+      <table class="table-barca">
+        <thead>
+          <tr>
+            <th *ngFor="let col of obtenerColumnas(resultado()?.datos ?? resultado())">
+              {{ col }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fila of (resultado()?.datos ?? resultado())">
+            <td *ngFor="let col of obtenerColumnas(resultado()?.datos ?? resultado())">
+              {{ formatearValor(fila[col]) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
