@@ -1,0 +1,154 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.navbar-custom {
+  background-color: var(--barca-blue-dark);
+  padding: 0.8rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 2px solid var(--barca-yellow);
+}
+
+.navbar-brand-wrapper .brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.navbar-brand-wrapper .brand-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.brand-crest {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dot-barca {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-barca.blue {
+  background-color: var(--barca-blue);
+  box-shadow: 0 0 6px rgba(0, 77, 152, 0.8);
+}
+
+.dot-barca.red {
+  background-color: var(--barca-red);
+  box-shadow: 0 0 6px rgba(165, 0, 68, 0.8);
+}
+
+.brand-heading {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--barca-white);
+  letter-spacing: 0.5px;
+}
+
+.brand-sub {
+  font-size: 0.75rem;
+  color: var(--barca-yellow);
+  font-weight: 600;
+  display: block;
+}
+
+/* Nav links */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar-links .nav-link {
+  color: var(--barca-white);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.navbar-links .nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--barca-yellow);
+  transform: translateY(-1px);
+}
+
+.navbar-links .nav-link.active {
+  background: var(--barca-yellow);
+  color: var(--barca-dark);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Action button (Inicio) */
+.navbar-actions .btn-home {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--barca-white);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.navbar-actions .btn-home:hover {
+  background: var(--barca-red);
+  color: var(--barca-white);
+}
+
+/* Contenido Principal */
+.system-main-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Footer Delgado (Identico a Landing Page) */
+.system-footer {
+  text-align: center;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.system-footer p {
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .navbar-custom {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .navbar-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

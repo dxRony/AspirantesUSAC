@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query } from '@nestjs/common';
 import { ConsultasMongodbService } from './consultas-mongodb.service';
 
 @Controller('consultas')
@@ -28,8 +28,14 @@ export class ConsultasMongodbController {
    * GET /api/consultas/3
    */
   @Get('3')
-  async consulta3() {
-    return this.servicioConsultas.consulta3_aprobadosPorCarreraYAnio();
+  async consulta3(
+    @Query('anio') anio?: string,
+    @Query('carrera') carrera?: string,
+  ) {
+    return this.servicioConsultas.consulta3_aprobadosPorCarreraYAnio(
+      anio ? parseInt(anio, 10) : undefined,
+      carrera,
+    );
   }
 
   /**
@@ -73,8 +79,11 @@ export class ConsultasMongodbController {
    * GET /api/consultas/7
    */
   @Get('7')
-  async consulta7() {
-    return this.servicioConsultas.consulta7_promedioEdadAprobadosCarreraYTipoInstitucion();
+  async consulta7(
+    @Query('carrera') carrera?: string,
+    @Query('tipo_institucion') tipoInstitucion?: string,
+  ) {
+    return this.servicioConsultas.consulta7_promedioEdadAprobadosCarreraYTipoInstitucion(carrera, tipoInstitucion);
   }
 
   /**
@@ -82,8 +91,11 @@ export class ConsultasMongodbController {
    * GET /api/consultas/8
    */
   @Get('8')
-  async consulta8() {
-    return this.servicioConsultas.consulta8_distribucionAprobadosMunicipioYCarrera();
+  async consulta8(
+    @Query('departamento') departamento?: string,
+    @Query('carrera') carrera?: string,
+  ) {
+    return this.servicioConsultas.consulta8_distribucionAprobadosMunicipioYCarrera(departamento, carrera);
   }
 
   /**
@@ -109,8 +121,18 @@ export class ConsultasMongodbController {
    * GET /api/consultas/11/:correlativo
    */
   @Get('11/:correlativo')
-  async consulta11(@Param('correlativo') correlativo: string) {
+  async consulta11Param(@Param('correlativo') correlativo: string) {
     return this.servicioConsultas.consulta11_historialDesempenoAspirante(correlativo);
+  }
+
+  /**
+   * endpoint auxiliar para usar sin parametro
+   * @param correlativo 
+   * @returns 
+   */
+  @Get('11')
+  async consulta11Query(@Query('correlativo') correlativo?: string) {
+    return this.servicioConsultas.consulta11_historialDesempenoAspirante(correlativo || '');
   }
 
   /**
@@ -118,8 +140,11 @@ export class ConsultasMongodbController {
    * GET /api/consultas/12
    */
   @Get('12')
-  async consulta12() {
-    return this.servicioConsultas.consulta12_distribucionSexoYTipoInstitucion();
+  async consulta12(
+    @Query('sexo') sexo?: string,
+    @Query('tipo_institucion') tipoInstitucion?: string,
+  ) {
+    return this.servicioConsultas.consulta12_distribucionSexoYTipoInstitucion(sexo, tipoInstitucion);
   }
 
   /**
@@ -145,8 +170,18 @@ export class ConsultasMongodbController {
    * GET /api/consultas/15/:correlativo
    */
   @Get('15/:correlativo')
-  async consulta15(@Param('correlativo') correlativo: string) {
+  async consulta15Param(@Param('correlativo') correlativo: string) {
     return this.servicioConsultas.consulta15_historialCompletoAspirante(correlativo);
+  }
+
+  /**
+   * endpoint auxiliar para usar sin parametro
+   * @param correlativo 
+   * @returns 
+   */
+  @Get('15')
+  async consulta15Query(@Query('correlativo') correlativo?: string) {
+    return this.servicioConsultas.consulta15_historialCompletoAspirante(correlativo || '');
   }
 
   /**

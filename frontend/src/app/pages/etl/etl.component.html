@@ -1,0 +1,141 @@
+<div class="etl-container">
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Proceso de Extracción, Transformación y Carga (ETL)</h1>
+      <p class="page-subtitle">
+        Sube los archivos oficiales de Pruebas Específicas en formato CSV para procesarlos por streaming hacia MongoDB y
+        Neo4j.
+      </p>
+    </div>
+    <button (click)="limpiarBases()" class="btn-danger-outline" [disabled]="cargando()">
+      Limpiar Bases de Datos
+    </button>
+  </div>
+
+  <!-- Alertas de estado -->
+  <div *ngIf="mensajeExito()" class="alert-box success">
+    {{ mensajeExito() }}
+  </div>
+  <div *ngIf="mensajeError()" class="alert-box error">
+    {{ mensajeError() }}
+  </div>
+
+  <div class="etl-main-grid">
+    <!-- Panel de Carga de Archivos -->
+    <div class="card-barca upload-card">
+      <h2 class="card-title">Seleccionar Archivo CSV</h2>
+
+      <div class="file-drop-area">
+        <input type="file" id="csvInput" accept=".csv" (change)="onArchivoSeleccionado($event)"
+          class="file-input-hidden" />
+        <label for="csvInput" class="file-label">
+          <span class="file-prompt">
+            {{ archivoSeleccionado() ? archivoSeleccionado()?.name : 'Haz clic para seleccionar un archivo CSV' }}
+          </span>
+          <span class="file-hint">Formato aceptado: .csv delimitado por comas</span>
+        </label>
+      </div>
+
+      <div class="upload-actions">
+        <button (click)="ejecutarCarga()" [disabled]="!archivoSeleccionado() || cargando()"
+          class="btn-start btn-process">
+          <span *ngIf="!cargando()">Procesar y Cargar</span>
+          <span *ngIf="cargando()">Procesando archivo, por favor espera...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel de Métricas de la Carga Actual -->
+    <div class="card-barca metrics-card">
+      <h2 class="card-title">Métricas de Carga</h2>
+
+      <div *ngIf="!resultadoCarga() && !cargando()" class="empty-metrics">
+        <p>No hay un proceso de carga reciente en ejecución.</p>
+        <span class="empty-hint">Selecciona un archivo y haz clic en procesar para ver las métricas.</span>
+      </div>
+
+      <div *ngIf="cargando()" class="loading-state">
+        <div class="spinner"></div>
+        <p>Procesando e indexando registros en MongoDB y Neo4j...</p>
+      </div>
+
+      <div *ngIf="resultadoCarga() && !cargando()" class="metrics-details">
+        <div class="metric-row">
+          <span class="m-label">Archivo:</span>
+          <span class="m-val highlight">{{ resultadoCarga()?.nombre_archivo || resultadoCarga()?.datos?.nombre_archivo }}</span>
+        </div>
+        <div class="metric-row">
+          <span class="m-label">Estado:</span>
+          <span class="m-badge" [class.success]="(resultadoCarga()?.estado || resultadoCarga()?.datos?.estado) === 'COMPLETADO'">
+            {{ resultadoCarga()?.estado || resultadoCarga()?.datos?.estado }}
+          </span>
+        </div>
+        <div class="metric-row">
+          <span class="m-label">Tiempo Utilizado:</span>
+          <span class="m-val">{{ resultadoCarga()?.tiempo_utilizado_ms ?? resultadoCarga()?.datos?.tiempo_utilizado_ms }} ms</span>
+        </div>
+        <div class="metric-row">
+          <span class="m-label">Total Leídos:</span>
+          <span class="m-val">{{ (resultadoCarga()?.total_leidos ?? resultadoCarga()?.datos?.total_leidos) | number }}</span>
+        </div>
+        <div class="metric-row">
+          <span class="m-label">Correctos (Insertados):</span>
+          <span class="m-val text-success">{{ (resultadoCarga()?.total_procesados ?? resultadoCarga()?.datos?.total_procesados) | number }}</span>
+        </div>
+        <div class="metric-row">
+          <span class="m-label">Rechazados / Errores:</span>
+          <span class="m-val text-danger">{{ (resultadoCarga()?.total_rechazados ?? resultadoCarga()?.datos?.total_rechazados) | number }}</span>
+        </div>
+
+        <div *ngIf="(resultadoCarga()?.errores?.length > 0) || (resultadoCarga()?.datos?.errores?.length > 0)" class="errors-preview">
+          <h4>Errores Detectados (Primeros registros):</h4>
+          <ul>
+            <li *ngFor="let err of (resultadoCarga()?.errores || resultadoCarga()?.datos?.errores)?.slice(0, 5)">
+              Fila {{ err.fila }}: {{ err.motivo }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de Cargas -->
+  <div class="history-section">
+    <h2 class="section-title">Historial de Auditoría de Cargas (MongoDB)</h2>
+    <div *ngIf="historialCargas().length === 0" class="no-history">
+      No hay registros previos en la colección <code>cargas_historial</code>.
+    </div>
+
+    <div *ngIf="historialCargas().length > 0" class="table-responsive">
+      <table class="table-barca">
+        <thead>
+          <tr>
+            <th>Archivo</th>
+            <th>Fecha Inicio</th>
+            <th>Tiempo</th>
+            <th>Leídos</th>
+            <th>Procesados</th>
+            <th>Rechazados</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let carga of historialCargas()">
+            <td><strong>{{ carga.nombre_archivo }}</strong></td>
+            <td>{{ carga.fecha_inicio | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+            <td>{{ carga.tiempo_utilizado_ms }} ms</td>
+            <td>{{ carga.total_leidos | number }}</td>
+            <td style="color: #28a745; font-weight: bold;">{{ carga.total_procesados | number }}</td>
+            <td style="color: #dc3545; font-weight: bold;">{{ carga.total_rechazados | number }}</td>
+            <td>
+              <span class="badge-status" [class.completed]="carga.estado === 'COMPLETADO'">
+                {{ carga.estado }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

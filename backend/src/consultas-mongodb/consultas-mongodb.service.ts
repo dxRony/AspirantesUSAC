@@ -83,10 +83,18 @@ export class ConsultasMongodbService {
    * 3. Aprobados por carrera y año de ingreso.
    * Mostrar la cantidad de aspirantes aprobados agrupados por carrera objetivo y año de ingreso.
    */
-  async consulta3_aprobadosPorCarreraYAnio() {
+  async consulta3_aprobadosPorCarreraYAnio(anio?: number, carrera?: string) {
+    const match: any = { aprobo: true, carrera_objetivo: { $ne: 'NINGUNO' } };
+    if (anio && !isNaN(anio)) {
+      match.anio_de_ingreso = anio;
+    }
+    if (carrera && carrera.trim()) {
+      match.carrera_objetivo = { $regex: new RegExp(carrera.trim(), 'i') };
+    }
+
     return this.modeloEvaluacion.aggregate([
       // filtra las evaluaciones aprobadas sin contar a las que no tienen carrera
-      { $match: { aprobo: true, carrera_objetivo: { $ne: 'NINGUNO' } } },
+      { $match: match },
       {
         // organiza los documentos por carrera objetivo y anio de ingreso
         $group: {
@@ -297,15 +305,23 @@ export class ConsultasMongodbService {
    * 7. Promedio de edad de aspirantes aprobados por carrera y tipo de institución.
    * Mostrar la edad promedio de los aspirantes que aprobaron, agrupada por carrera objetivo y tipo de institución educativa.
    */
-  async consulta7_promedioEdadAprobadosCarreraYTipoInstitucion() {
+  async consulta7_promedioEdadAprobadosCarreraYTipoInstitucion(carrera?: string, tipoInstitucion?: string) {
+    const match: any = {
+      aprobo: true,
+      edad: { $ne: null },
+      carrera_objetivo: { $ne: 'NINGUNO' },
+    };
+    if (carrera && carrera.trim()) {
+      match.carrera_objetivo = { $regex: new RegExp(carrera.trim(), 'i') };
+    }
+    if (tipoInstitucion && tipoInstitucion.trim()) {
+      match.tipo_institucion_educativa = { $regex: new RegExp(tipoInstitucion.trim(), 'i') };
+    }
+
     return this.modeloEvaluacion.aggregate([
       {
         // filtra solo evaluaciones aprobadas con edad y carrera validas
-        $match: {
-          aprobo: true,
-          edad: { $ne: null },
-          carrera_objetivo: { $ne: 'NINGUNO' },
-        },
+        $match: match,
       },
       {
         // agrupa primero por aspirante para no repetir la edad del mismo aspirante
@@ -355,21 +371,30 @@ export class ConsultasMongodbService {
    * 8. Distribución de aprobados por municipio y carrera objetivo.
    * Mostrar la cantidad de aprobados según el municipio de la institución educativa y la carrera objetivo.
    */
-  async consulta8_distribucionAprobadosMunicipioYCarrera() {
+  async consulta8_distribucionAprobadosMunicipioYCarrera(departamento?: string, carrera?: string) {
+    const match: any = {
+      aprobo: true,
+      carrera_objetivo: { $ne: 'NINGUNO' },
+      municipio_institucion_educativa: { $ne: 'NO REGISTRADO' },
+    };
+    if (departamento && departamento.trim()) {
+      match.departamento_institucion_educativa = { $regex: new RegExp(departamento.trim(), 'i') };
+    }
+    if (carrera && carrera.trim()) {
+      match.carrera_objetivo = { $regex: new RegExp(carrera.trim(), 'i') };
+    }
+
     return this.modeloEvaluacion.aggregate([
       {
         // filtra evaluaciones aprobadas con municipio y carrera registrados
-        $match: {
-          aprobo: true,
-          carrera_objetivo: { $ne: 'NINGUNO' },
-          municipio_institucion_educativa: { $ne: 'NO REGISTRADO' },
-        },
+        $match: match,
       },
       {
-        // organiza los documentos por municipio y carrera objetivo
+        // organiza los documentos por departamento, municipio y carrera objetivo
         $group: {
-          // id compuesto por municipio y carrera
+          // id compuesto por departamento, municipio y carrera
           _id: {
+            departamento: '$departamento_institucion_educativa',
             municipio: '$municipio_institucion_educativa',
             carrera: '$carrera_objetivo',
           },
@@ -382,6 +407,8 @@ export class ConsultasMongodbService {
         $project: {
           // elimina el id
           _id: 0,
+          // departamento de procedencia
+          departamento: '$_id.departamento',
           // nombre del municipio
           municipio: '$_id.municipio',
           // nombre de la carrera objetivo
@@ -390,8 +417,8 @@ export class ConsultasMongodbService {
           total_aprobados: { $size: '$total_aprobados' },
         },
       },
-      // ordena alfabeticamente por municipio y de mayor a menor por aprobados
-      { $sort: { municipio: 1, total_aprobados: -1 } },
+      // ordena alfabeticamente por departamento, municipio y de mayor a menor por aprobados
+      { $sort: { departamento: 1, municipio: 1, total_aprobados: -1 } },
     ]);
   }
 
@@ -408,28 +435,45 @@ export class ConsultasMongodbService {
         $group: {
           // id compuesto por mes extraido de la fecha y materia
           _id: {
-            mes: { $month: '$fecha_asignacion' },
+            mes_num: { $month: '$fecha_asignacion' },
             materia: '$materia',
           },
           // cantidad de evaluaciones (suma 1 por cada registro)
           total_evaluaciones: { $sum: 1 },
         },
       },
+      // ordena de forma ascendente cronologica por mes numerico y alfabeticamente por materia
+      { $sort: { '_id.mes_num': 1, '_id.materia': 1 } },
       {
-        // estructura el resultado final
+        // estructura el resultado final con mes formateado '1 - Enero'
         $project: {
           // elimina el id
           _id: 0,
-          // numero de mes obtenido
-          mes: '$_id.mes',
+          mes: {
+            $switch: {
+              branches: [
+                { case: { $eq: ['$_id.mes_num', 1] }, then: '1 (Enero)' },
+                { case: { $eq: ['$_id.mes_num', 2] }, then: '2 (Febrero)' },
+                { case: { $eq: ['$_id.mes_num', 3] }, then: '3 (Marzo)' },
+                { case: { $eq: ['$_id.mes_num', 4] }, then: '4 (Abril)' },
+                { case: { $eq: ['$_id.mes_num', 5] }, then: '5 (Mayo)' },
+                { case: { $eq: ['$_id.mes_num', 6] }, then: '6 ((Junio)' },
+                { case: { $eq: ['$_id.mes_num', 7] }, then: '7 (Julio)' },
+                { case: { $eq: ['$_id.mes_num', 8] }, then: '8 (Agosto)' },
+                { case: { $eq: ['$_id.mes_num', 9] }, then: '9 (Septiembre)' },
+                { case: { $eq: ['$_id.mes_num', 10] }, then: '10 (Octubre)' },
+                { case: { $eq: ['$_id.mes_num', 11] }, then: '11 (Noviembre)' },
+                { case: { $eq: ['$_id.mes_num', 12] }, then: '12 (Diciembre)' },
+              ],
+              default: { $toString: '$_id.mes_num' },
+            },
+          },
           // nombre de la materia
           materia: '$_id.materia',
           // cantidad de evaluaciones
           total_evaluaciones: 1,
         },
       },
-      // ordena de forma ascendente por mes y alfabeticamente por materia
-      { $sort: { mes: 1, materia: 1 } },
     ]);
   }
 
@@ -528,8 +572,21 @@ export class ConsultasMongodbService {
    * 12. Distribución por sexo y tipo de institución educativa.
    * Mostrar la cantidad de aspirantes agrupados por sexo y tipo de institución.
    */
-  async consulta12_distribucionSexoYTipoInstitucion() {
-    return this.modeloEvaluacion.aggregate([
+  async consulta12_distribucionSexoYTipoInstitucion(sexo?: string, tipoInstitucion?: string) {
+    const match: any = {};
+    if (sexo && sexo.trim()) {
+      match.sexo = sexo.trim().toUpperCase();
+    }
+    if (tipoInstitucion && tipoInstitucion.trim()) {
+      match.tipo_institucion_educativa = { $regex: new RegExp(tipoInstitucion.trim(), 'i') };
+    }
+
+    const pipeline: any[] = [];
+    if (Object.keys(match).length > 0) {
+      pipeline.push({ $match: match });
+    }
+
+    pipeline.push(
       {
         // organiza los documentos por sexo y tipo de institucion educativa
         $group: {
@@ -554,7 +611,9 @@ export class ConsultasMongodbService {
       },
       // ordena alfabeticamente por sexo y de mayor a menor por cantidad de aspirantes
       { $sort: { sexo: 1, total_aspirantes: -1 } },
-    ]);
+    );
+
+    return this.modeloEvaluacion.aggregate(pipeline);
   }
 
   /**
@@ -892,7 +951,7 @@ export class ConsultasMongodbService {
       // ordena por departamento y de mayor a menor demanda
       { $sort: { departamento: 1, total_aspirantes: -1 } },
       {
-        // agrupa ahora por departamento para consolidar el ranking de carreras
+        // agrupa ahora por departamento para consolidar la carrera líder
         $group: {
           // id del departamento
           _id: '$departamento',
@@ -900,19 +959,10 @@ export class ConsultasMongodbService {
           carrera_mas_demandada: { $first: '$carrera' },
           // cantidad maxima de aspirantes para la carrera lider
           demanda_maxima: { $first: '$total_aspirantes' },
-          // crea un arreglo con el listado de carreras y su demanda
-          ranking_carreras: {
-            $push: {
-              // nombre de la carrera
-              carrera: '$carrera',
-              // cantidad de aspirantes
-              total_aspirantes: '$total_aspirantes',
-            },
-          },
         },
       },
       {
-        // estructura el resultado final limitando el ranking
+        // estructura el resultado final limpio sin arrays JSON
         $project: {
           // elimina el id
           _id: 0,
@@ -921,9 +971,7 @@ export class ConsultasMongodbService {
           // carrera mas solicitada
           carrera_mas_demandada: 1,
           // demanda mas alta registrada
-          demanda_maxima: 1,
-          // selecciona las 5 carreras con mas aspirantes
-          ranking_carreras: { $slice: ['$ranking_carreras', 5] },
+          total_aspirantes: '$demanda_maxima',
         },
       },
       // ordena alfabeticamente por departamento
