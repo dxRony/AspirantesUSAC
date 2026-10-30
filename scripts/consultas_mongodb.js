@@ -1,5 +1,5 @@
 // seleccionando la base de datos
-db = db.getSiblingDB('aspirantes_usac');
+db = db.getSiblingDB('aspirantes_db');
 print("EJECUTANDO CONSULTAS ANALiTICAS EN MONGODB - ASPIRANTES USAC");
 
 
