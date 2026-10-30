@@ -158,84 +158,36 @@
     </div>
 
     <!-- Vista Especial para Consulta 15 (Historial Completo de un Aspirante) -->
-    <div *ngIf="resultado()?.datos_aspirante" class="aspirante-detail-view">
-      <div class="aspirante-profile-card">
-        <h4 class="aspirante-profile-title">Datos Demográficos del Aspirante</h4>
-        <div class="aspirante-grid">
-          <div class="aspirante-field">
-            <span class="field-label">Correlativo:</span>
-            <span class="field-value">{{ resultado().datos_aspirante.correlativo_aspirante }}</span>
-          </div>
-          <div class="aspirante-field">
-            <span class="field-label">Carrera Objetivo:</span>
-            <span class="field-value highlight-text">{{ resultado().datos_aspirante.carrera_objetivo || 'NINGUNO'
-              }}</span>
-          </div>
-          <div class="aspirante-field">
-            <span class="field-label">Sexo:</span>
-            <span class="field-value">{{ resultado().datos_aspirante.sexo === 'M' ? 'Masculino (M)' :
-              (resultado().datos_aspirante.sexo === 'F' ? 'Femenino (F)' : resultado().datos_aspirante.sexo) }}</span>
-          </div>
-          <div class="aspirante-field">
-            <span class="field-label">Edad / Año Nacimiento:</span>
-            <span class="field-value">
-              {{ resultado().datos_aspirante.edad ? resultado().datos_aspirante.edad + ' años' : 'Sin registro' }}
-              <span *ngIf="resultado().datos_aspirante.anio_nacimiento">({{ resultado().datos_aspirante.anio_nacimiento
-                }})</span>
-            </span>
-          </div>
-          <div class="aspirante-field">
-            <span class="field-label">Procedencia Educativa:</span>
-            <span class="field-value">{{ resultado().datos_aspirante.municipio_institucion_educativa }}, {{
-              resultado().datos_aspirante.departamento_institucion_educativa }}</span>
-          </div>
-          <div class="aspirante-field">
-            <span class="field-label">Tipo Institución:</span>
-            <span class="field-value">
-              {{ resultado().datos_aspirante.tipo_institucion_educativa }}
-              ({{ resultado().datos_aspirante.es_publica ? 'Pública' : 'Privada / Otra' }})
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="results-header" style="margin-top: 1rem;">
-        <span class="results-count">
-          Historial de Evaluaciones Realizadas (Total: <strong>{{ resultado().evaluaciones?.length || 0 }}</strong>)
-        </span>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table-barca">
-          <thead>
-            <tr>
-              <th>materia</th>
-              <th>intento</th>
-              <th>anio_de_ingreso</th>
-              <th>fecha_asignacion</th>
-              <th>aprobacion</th>
-              <th>aprobo</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let ev of resultado().evaluaciones">
-              <td><strong>{{ ev.materia }}</strong></td>
-              <td>{{ ev.intento }}</td>
-              <td>{{ ev.anio_de_ingreso }}</td>
-              <td>{{ formatearValor(ev.fecha_asignacion) }}</td>
-              <td>
-                <span [style.color]="ev.aprobo ? '#4caf50' : '#ff5252'" style="font-weight: 700;">
-                  {{ ev.aprobacion }}
-                </span>
-              </td>
-              <td>{{ ev.aprobo ? 'Sí' : 'No' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div *ngIf="resultado()?.datos_aspirante" class="table-responsive">
+      <table class="table-barca">
+        <thead>
+          <tr>
+            <th>materia</th>
+            <th>intento</th>
+            <th>anio_de_ingreso</th>
+            <th>fecha_asignacion</th>
+            <th>aprobacion</th>
+            <th>aprobo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ev of resultado().evaluaciones">
+            <td><strong>{{ ev.materia }}</strong></td>
+            <td>{{ ev.intento }}</td>
+            <td>{{ ev.anio_de_ingreso }}</td>
+            <td>{{ formatearValor(ev.fecha_asignacion) }}</td>
+            <td>
+              <span [style.color]="ev.aprobo ? '#4caf50' : '#ff5252'" style="font-weight: 700;">
+                {{ ev.aprobacion }}
+              </span>
+            </td>
+            <td>{{ ev.aprobo ? 'Sí' : 'No' }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- Vista Estándar (Tablas para el resto de consultas) -->
+    <!-- Vista Estándar (Tabla de resultados primero) -->
     <div *ngIf="!resultado()?.datos_aspirante" class="table-responsive">
       <table class="table-barca">
         <thead>
@@ -253,6 +205,13 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Panel de Visualización Gráfica (debajo de la tabla cuando hay gráfica disponible) -->
+    <div *ngIf="configGrafico()" class="chart-container-card">
+      <div class="chart-canvas-wrapper">
+        <canvas #chartCanvas></canvas>
+      </div>
     </div>
   </div>
 </div>
