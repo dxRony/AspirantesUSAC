@@ -1,4 +1,4 @@
-// Consulta 3: Análisis de Cuellos de Botella y Reintentos Críticos
+// Consulta 3: Cuellos de botella academicos
 MATCH (c:Carrera)<-[:ASPIRA_A]-(a:Aspirante)-[r:EVALUADO_EN]->(m:Materia)
 WHERE r.intento >= $minIntentos
   AND ($materia IS NULL OR m.nombre = $materia)

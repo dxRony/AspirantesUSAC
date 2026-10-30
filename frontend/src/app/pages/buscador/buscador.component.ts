@@ -16,7 +16,7 @@ export class BuscadorComponent {
   aspirante = signal<any>(null);
   error = signal<string | null>(null);
 
-  constructor(private readonly apiService: ApiService) {}
+  constructor(private readonly apiService: ApiService) { }
 
   buscar(): void {
     const correlativo = this.terminoBusqueda()?.trim();
@@ -29,7 +29,6 @@ export class BuscadorComponent {
     this.error.set(null);
     this.aspirante.set(null);
 
-    // Consulta 15 en MongoDB: Historial Completo del Aspirante
     this.apiService.obtenerConsultaMongo(15, { correlativo }).subscribe({
       next: (resp) => {
         const crudo = resp?.datos || resp;
@@ -54,8 +53,4 @@ export class BuscadorComponent {
     });
   }
 
-  seleccionarEjemplo(corr: string): void {
-    this.terminoBusqueda.set(corr);
-    this.buscar();
-  }
 }

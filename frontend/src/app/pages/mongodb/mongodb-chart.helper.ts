@@ -10,7 +10,7 @@ export interface ConfiguracionGraficoMongo {
   tituloGrafico: string;
   tipo: 'bar' | 'line' | 'doughnut' | 'pie';
   kpis: KpiItem[];
-  config: any; // ChartConfiguration de Chart.js
+  config: any;
 }
 
 const PALETA_COLORES = [
@@ -27,19 +27,19 @@ const PALETA_COLORES = [
 ];
 
 /**
- * Función principal que genera la configuración de Chart.js y KPIs según la consulta de MongoDB
+ * Funcion principal que genera la configuracion de Chart.js según la consulta de MongoDB
  */
 export function generarConfiguracionGrafico(idConsulta: number, datos: any): ConfiguracionGraficoMongo | null {
   if (!datos) return null;
   const lista = Array.isArray(datos) ? datos : (Array.isArray(datos.datos) ? datos.datos : (Array.isArray(datos.resumen) ? datos.resumen : []));
 
-  // Las consultas 6 (colección auxiliar), 11 y 15 (historial individual) no requieren gráfica
+  // Las consultas 6, 11 y 15  no requieren grafica
   if ([6, 11, 15].includes(idConsulta) || lista.length === 0) {
     return null;
   }
 
   switch (idConsulta) {
-    // 1. Aspirantes por tipo de institución educativa (Dona)
+    // Aspirantes por tipo de institución educativa (dona)
     case 1: {
       const labels = lista.map((d: any) => d.tipo_institucion_educativa || 'SIN REGISTRO');
       const valores = lista.map((d: any) => d.total_aspirantes || 0);
@@ -71,7 +71,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 2. Cantidad de aprobados por materia (Barras)
+    // Cantidad de aprobados por materia (barras)
     case 2: {
       const labels = lista.map((d: any) => d.materia);
       const valores = lista.map((d: any) => d.total_aprobados || 0);
@@ -101,7 +101,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 3. Aprobados por carrera y año de ingreso (Barras)
+    // aprobados por carrera y año de ingreso (barras)
     case 3: {
       const muestra = lista.slice(0, 15);
       const labels = muestra.map((d: any) => `${d.carrera_objetivo} (${d.anio_de_ingreso})`);
@@ -131,7 +131,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 4. Porcentaje de aprobación por materia (Barras)
+    // porcentaje de aprobación por materia (barras)
     case 4: {
       const labels = lista.map((d: any) => d.materia);
       const porcentajes = lista.map((d: any) => d.porcentaje_aprobacion || 0);
@@ -160,7 +160,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 5. Promedio de edad por carrera (Barras Horizontales)
+    // promedio de edad por carrera (barras horizontales)
     case 5: {
       const labels = lista.map((d: any) => d.carrera_objetivo);
       const valores = lista.map((d: any) => Number((d.edad_promedio || 0).toFixed(1)));
@@ -190,7 +190,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 7. Promedio de edad de aspirantes aprobados por carrera y tipo institución
+    // promedio de edad de aspirantes aprobados por carrera y tipo institución (barras horizontales)
     case 7: {
       const muestra = lista.slice(0, 12);
       const labels = muestra.map((d: any) => `${d.carrera_objetivo} [${d.tipo_institucion_educativa}]`);
@@ -221,7 +221,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 8. Distribución de aprobados por municipio y carrera
+    // distribución de aprobados por municipio y carrera (barras horizontales)
     case 8: {
       const muestra = lista.slice(0, 10);
       const labels = muestra.map((d: any) => `${d.municipio} - ${d.carrera_objetivo}`);
@@ -250,7 +250,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 9. Cantidad de evaluaciones por mes y materia para instituciones públicas (Línea)
+    // Cantidad de evaluaciones por mes y materia para instituciones publicas (linea)
     case 9: {
       const labels = lista.map((d: any) => `${d.mes_nombre || 'Mes ' + d.mes} (${d.materia})`);
       const valores = lista.map((d: any) => d.total_evaluaciones || 0);
@@ -281,7 +281,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 10. Top 5 carreras más demandadas por aspirantes entre 16 y 18 años (Barras Horizontales)
+    // top 5 carreras mas demandadas por aspirantes entre 16 y 18 años (Barras horizontales)
     case 10: {
       const labels = lista.map((d: any) => d.carrera_objetivo);
       const valores = lista.map((d: any) => d.total_aspirantes || 0);
@@ -310,7 +310,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 12. Distribución por sexo y tipo de institución (Barras agrupadas / apiladas)
+    // distribucion por sexo y tipo de institucion (barras agrupadas)
     case 12: {
       const tipos = Array.from(new Set(lista.map((d: any) => d.tipo_institucion_educativa || 'SIN REGISTRO')));
       const hombresPorTipo = tipos.map((t) => {
@@ -344,7 +344,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 13. Tasa de aprobación por edad (Línea de tendencia)
+    // tasa de aprobación por edad (linea)
     case 13: {
       const ordenada = [...lista].sort((a: any, b: any) => (a.edad || 0) - (b.edad || 0));
       const labels = ordenada.map((d: any) => `${d.edad} años`);
@@ -376,7 +376,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 14. Número promedio de intentos por materia (Barras)
+    // numero promedio de intentos por materia (barras)
     case 14: {
       const labels = lista.map((d: any) => d.materia);
       const intentos = lista.map((d: any) => Number((d.promedio_intentos || 0).toFixed(2)));
@@ -405,7 +405,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 16. Carreras con más aspirantes reprobados en primer intento (Barras Horizontales)
+    // carreras con mas aspirantes reprobados en primer intento (barras horizontales)
     case 16: {
       const top10 = lista.slice(0, 10);
       const labels = top10.map((d: any) => d.carrera_objetivo);
@@ -434,7 +434,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 17. Top 5 municipios con mayor cantidad de aspirantes (Dona / Pastel)
+    // top 5 municipios con mayor cantidad de aspirantes (dona)
     case 17: {
       const labels = lista.map((d: any) => d.municipio || 'SIN REGISTRO');
       const valores = lista.map((d: any) => d.total_aspirantes || 0);
@@ -464,7 +464,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 18. Tasa de aprobación por tipo de institución educativa (Barras)
+    // Tasa de aprobacion por tipo de institucion educativa (barras)
     case 18: {
       const labels = lista.map((d: any) => d.tipo_institucion_educativa || 'SIN REGISTRO');
       const tasas = lista.map((d: any) => d.tasa_aprobacion || 0);
@@ -492,7 +492,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 19. Carreras más demandadas por departamento (Barras Horizontales)
+    // carreras mas demandadas por departamento (Barras horizontales)
     case 19: {
       const muestra = lista.slice(0, 10);
       const labels = muestra.map((d: any) => `${d.departamento}: ${d.carrera_mas_demandada ?? d.carrera_objetivo ?? ''}`);
@@ -521,7 +521,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
       };
     }
 
-    // 20. Evolución de aprobación por año de ingreso (Barras Apiladas)
+    // evolución de aprobacion por año de ingreso (Barras Apiladas)
     case 20: {
       const ordenada = [...lista].sort((a: any, b: any) => (a.anio_de_ingreso || 0) - (b.anio_de_ingreso || 0));
       const labels = ordenada.map((d: any) => `Año ${d.anio_de_ingreso}`);
@@ -535,11 +535,11 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
         tipo: 'bar',
         kpis: [
           { label: 'Años Analizados', valor: lista.length, color: '#004D98' },
-          { 
-            label: `Año Reciente (${ultimoAnio?.anio_de_ingreso ?? '-'})`, 
-            valor: `${ultimoAnio?.porcentaje_aprobadas ?? ultimoAnio?.porcentaje_aprobacion ?? 0}% aprobados`, 
-            subtexto: `${ultimoAnio?.aprobadas?.toLocaleString() ?? 0} aprobadas de ${ultimoAnio?.total_evaluaciones?.toLocaleString() ?? 0}`, 
-            color: '#28a745' 
+          {
+            label: `Año Reciente (${ultimoAnio?.anio_de_ingreso ?? '-'})`,
+            valor: `${ultimoAnio?.porcentaje_aprobadas ?? ultimoAnio?.porcentaje_aprobacion ?? 0}% aprobados`,
+            subtexto: `${ultimoAnio?.aprobadas?.toLocaleString() ?? 0} aprobadas de ${ultimoAnio?.total_evaluaciones?.toLocaleString() ?? 0}`,
+            color: '#28a745'
           },
         ],
         config: {
@@ -572,7 +572,7 @@ export function generarConfiguracionGrafico(idConsulta: number, datos: any): Con
   }
 }
 
-function obtenerOpcionesBasicas(tipo: string, sinEjes: boolean = false): any {
+function obtenerOpcionesBasicas(_tipo: string, sinEjes: boolean = false): any {
   const options: any = {
     responsive: true,
     maintainAspectRatio: false,

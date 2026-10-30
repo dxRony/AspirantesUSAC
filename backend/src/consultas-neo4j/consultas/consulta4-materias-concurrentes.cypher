@@ -1,4 +1,4 @@
-// Consulta 4: Red de Materias Concurrentes
+// Consulta 4: Evaluacion conjunta de materias
 MATCH (m1:Materia)<-[r1:EVALUADO_EN]-(a:Aspirante)-[r2:EVALUADO_EN]->(m2:Materia)
 WHERE m1.nombre < m2.nombre
   AND r1.anio = r2.anio

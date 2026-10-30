@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Neo4jService } from '../database/neo4j/neo4j.service';
 import {
   CYPHER_CONSULTA_1,
@@ -15,11 +15,10 @@ import {
   RespuestaConsultaNeo4j,
 } from './interfaces';
 
-// exportando interfaces
 export { AristaGrafo, ElementosGrafo, NodoGrafo, RespuestaConsultaNeo4j };
 
 /**
- * funcion para normalizar valores devueltos por neo4j driver
+ * funcion para normalizar valores devueltos por el driver de neo4j
  */
 function normalizarValor(valor: any): any {
   if (valor === null || valor === undefined) return valor;
@@ -35,9 +34,8 @@ function normalizarValor(valor: any): any {
       // se recorren los elementos del array
       return valor.map(normalizarValor);
     }
-    // si el valor es un objeto
-    const objetoNormalizado: Record<string, any> = {};
     // se recorren las propiedades del objeto
+    const objetoNormalizado: Record<string, any> = {};
     for (const clave of Object.keys(valor)) {
       // se normaliza cada propiedad del objeto
       objetoNormalizado[clave] = normalizarValor(valor[clave]);
@@ -53,12 +51,10 @@ function normalizarValor(valor: any): any {
  */
 @Injectable()
 export class ConsultasNeo4jService {
-  private readonly logger = new Logger(ConsultasNeo4jService.name);
-
   constructor(private readonly neo4jService: Neo4jService) { }
 
   /**
-   * Helper para construir un grafo
+   * Helper para construir un grafo con nodos y aristas
    */
   private crearGrafo(): {
     agregarNodo: (nodo: NodoGrafo) => void;
@@ -70,14 +66,14 @@ export class ConsultasNeo4jService {
     const mapaAristas = new Map<string, AristaGrafo>();
 
     return {
-      // funcion para agregar un nodo al mapa
+      // agrega un nodo al mapa
       agregarNodo: (nodo: NodoGrafo) => {
         // si el nodo no existe en el mapa se agrega
         if (!mapaNodos.has(nodo.id)) {
           mapaNodos.set(nodo.id, nodo);
         }
       },
-      // funcion para agregar aristas al mapa
+      // agrega aristas al mapa
       agregarArista: (arista: AristaGrafo) => {
         // se crea un id para la arista
         const idArista = arista.id || `${arista.from}->${arista.to}:${arista.label || ''}`;
@@ -86,7 +82,7 @@ export class ConsultasNeo4jService {
           mapaAristas.set(idArista, { ...arista, id: idArista });
         }
       },
-      // funcion para obtener los nodos y aristas del grafo
+      // obtiene los nodos y aristas del grafo
       obtenerElementos: (): ElementosGrafo => ({
         nodes: Array.from(mapaNodos.values()),
         edges: Array.from(mapaAristas.values()),
@@ -99,7 +95,7 @@ export class ConsultasNeo4jService {
    * Esta consulta sirve para conocer qué materias debe aprobar un estudiante para ingresar a cada carrera
    * y cuántos aspirantes lograron superar cada una.
    */
-  async consulta1_rutasAprobacion(carrera?: string, anio?: number, limite = 50,): Promise<RespuestaConsultaNeo4j> {
+  async consulta1_rutasAprobacion(carrera?: string, anio?: number, limite = 50): Promise<RespuestaConsultaNeo4j> {
     // parametros para la consulta
     const parametros = {
       carrera: carrera || null,
@@ -164,7 +160,7 @@ export class ConsultasNeo4jService {
    * Esta consulta nos permite ver de dónde vienen los aspirantes:
    * Departamento -> Municipio -> Aspirante -> Carrera.
    */
-  async consulta2_flujoGeografico(departamento?: string, carrera?: string, limite = 50,): Promise<RespuestaConsultaNeo4j> {
+  async consulta2_flujoGeografico(departamento?: string, carrera?: string, limite = 50): Promise<RespuestaConsultaNeo4j> {
     // parametros para la consulta
     const parametros = {
       departamento: departamento || null,
@@ -207,7 +203,7 @@ export class ConsultasNeo4jService {
         group: 'Carrera',
       });
 
-      // se agrega la arista del departamento al municipio (flujo territorial Depto -> Municipio)
+      // se agrega la arista del departamento al municipio
       builderGrafo.agregarArista({
         from: idDepto,
         to: idMuni,
@@ -215,7 +211,7 @@ export class ConsultasNeo4jService {
         title: `Departamento: ${fila.departamento} -> Municipio: ${fila.municipio}`,
       });
 
-      // se agrega la arista del flujo de aspirantes a la carrera (Municipio -> Carrera)
+      // se agrega la arista del flujo de aspirantes a la carrera
       builderGrafo.agregarArista({
         from: idMuni,
         to: idCarrera,
@@ -240,7 +236,7 @@ export class ConsultasNeo4jService {
 
   /**
    * Consulta 3: Análisis de Cuellos de Botella y Reintentos Críticos
-   * Esta consulta busca a los estudiantes que necesitaron dos o más intentos en una misma materia y analiza
+   * Esta consulta busca a los estudiantes que necesitaron dos o mas intentos en una misma materia y analiza
    * si finalmente lograron aprobar o ya no continuaron.
    */
   async consulta3_reintentosCriticos(minIntentos = 2, materia?: string, carrera?: string, limite = 50): Promise<RespuestaConsultaNeo4j> {
@@ -259,7 +255,7 @@ export class ConsultasNeo4jService {
     // se crea el grafo
     const builderGrafo = this.crearGrafo();
 
-    // Consolidamos métricas por materia y carrera para evitar que 16 aristas se monten una sobre otra
+    // se agrupan las metricas por materia y carrera
     const mapaFlujos = new Map<string, {
       materia: string;
       carrera: string;
@@ -268,7 +264,9 @@ export class ConsultasNeo4jService {
       detalles: string[];
     }>();
 
+    // se recorren las metricas para acumular intentos
     for (const fila of metricas) {
+      // se crea la clave agrupada
       const clave = `${fila.materia}__${fila.carrera}`;
       if (!mapaFlujos.has(clave)) {
         mapaFlujos.set(clave, {
@@ -281,6 +279,7 @@ export class ConsultasNeo4jService {
       }
       const flujo = mapaFlujos.get(clave)!;
       const cant = Number(fila.total_aspirantes) || 0;
+      // se acumulan las evaluaciones aprobadas y reprobadas
       if (fila.resultado === 'APROBADO' || fila.resultado === 'SATISFACTORIO') {
         flujo.totalAprobados += cant;
       } else {
@@ -289,27 +288,33 @@ export class ConsultasNeo4jService {
       flujo.detalles.push(`Intento ${fila.intento} (${fila.resultado}): ${cant.toLocaleString()} aspirantes`);
     }
 
+    // se recorren los flujos agrupados
     for (const flujo of mapaFlujos.values()) {
+      // se crea un id para la materia y carrera
       const idMateria = `materia:${flujo.materia}`;
       const idCarrera = `carrera:${flujo.carrera}`;
 
+      // se agrega el nodo de la materia
       builderGrafo.agregarNodo({
         id: idMateria,
         label: flujo.materia,
         group: 'Materia',
       });
 
+      // se agrega el nodo de la carrera
       builderGrafo.agregarNodo({
         id: idCarrera,
         label: flujo.carrera,
         group: 'Carrera',
       });
 
+      // se calcula la tasa de reprobacion
       const totalReintentos = flujo.totalReprobados + flujo.totalAprobados;
       const tasaReprobacion = totalReintentos > 0
         ? ((flujo.totalReprobados * 100) / totalReintentos).toFixed(1)
         : '0.0';
 
+      // se agrega la arista del cuello de botella
       builderGrafo.agregarArista({
         id: `${idMateria}->${idCarrera}`,
         from: idMateria,
@@ -341,7 +346,8 @@ export class ConsultasNeo4jService {
 
   /**
    * Consulta 4: Red de Materias Concurrentes
-   * Esta consulta muestra qué pares de materias suelen evaluarse al mismo tiempo en una misma fecha o año.
+   * Esta consulta muestra que pares de materias suelen evaluarse al mismo tiempo en una misma fecha o año
+   * y cuántos aspirantes se examinaron simultáneamente de ambas.
    */
   async consulta4_materiasConcurrentes(anio?: number, limite = 30): Promise<RespuestaConsultaNeo4j> {
     // parametros para la consulta
@@ -403,8 +409,8 @@ export class ConsultasNeo4jService {
 
   /**
    * Consulta 5: Rendimiento y Trayectoria por Tipo de Institución
-   * Esta consulta permite comparar cómo les va a los aspirantes según el tipo de colegio de procedencia (público o privado)
-   * para ingresar a distintas carreras
+   * Esta consulta permite comparar como les va a los aspirantes segun el tipo de colegio de procedencia (público o privado)
+   * para ingresar a distintas carreras.
    */
   async consulta5_brechaInstitucion(
     tipoInstitucion?: string,
@@ -441,7 +447,7 @@ export class ConsultasNeo4jService {
       const idTipo = `tipo_institucion:${fila.tipo_institucion}`;
       const idCarrera = `carrera:${fila.carrera}`;
 
-      // se agrega el nodo del tipo de institucion
+      // se configura la etiqueta y grupo segun sea publica o privada
       let etiquetaTipo = fila.tipo_institucion;
       let grupoTipo = 'Institucion';
 
@@ -456,6 +462,7 @@ export class ConsultasNeo4jService {
         grupoTipo = 'InstitucionPrivada';
       }
 
+      // se agrega el nodo del tipo de institucion
       builderGrafo.agregarNodo({
         id: idTipo,
         label: etiquetaTipo,
@@ -469,7 +476,7 @@ export class ConsultasNeo4jService {
         group: 'Carrera',
       });
 
-      // se agrega la arista de trayectoria entre institucion y carrera
+      // se agrega la arista de rendimiento entre la institucion y la carrera
       builderGrafo.agregarArista({
         from: idTipo,
         to: idCarrera,
@@ -499,7 +506,8 @@ export class ConsultasNeo4jService {
 
   /**
    * Consulta 6: Historial y Trayectoria del Aspirante
-   * Esta consulta muestra los datos completos de un aspirante usando su correlativo.
+   * Esta consulta muestra los datos completos de un aspirante usando su correlativo
+   * conectandolo con su carrera objetivo, origen geografico, institucion y evaluaciones.
    */
   async consulta6_egoNetworkAspirante(correlativo: string): Promise<RespuestaConsultaNeo4j> {
     // se valida que venga el correlativo
@@ -539,14 +547,14 @@ export class ConsultasNeo4jService {
       },
     });
 
-    // se conecta el nodo de la carrera si existe
+    // se agrega el nodo y arista de la carrera si existe
     if (fila.carrera) {
       const idCarrera = `carrera:${fila.carrera}`;
       builderGrafo.agregarNodo({ id: idCarrera, label: fila.carrera, group: 'Carrera' });
       builderGrafo.agregarArista({ from: idAspirante, to: idCarrera, label: 'ASPIRA_A' });
     }
 
-    // se conecta el nodo del tipo de institucion si existe
+    // se agrega el nodo y arista del tipo de institucion si existe
     if (fila.tipo_institucion) {
       const idTipo = `tipo_institucion:${fila.tipo_institucion}`;
       let labelTipo = fila.tipo_institucion;
@@ -569,7 +577,7 @@ export class ConsultasNeo4jService {
       builderGrafo.agregarArista({ from: idAspirante, to: idTipo, label: 'PROVIENE_DE' });
     }
 
-    // se conecta el nodo del municipio y departamento si existen
+    // se agregan los nodos y aristas del municipio y departamento si existen
     if (fila.municipio) {
       const idMuni = `municipio:${fila.municipio}`;
       builderGrafo.agregarNodo({ id: idMuni, label: fila.municipio, group: 'Municipio' });
@@ -582,7 +590,7 @@ export class ConsultasNeo4jService {
       }
     }
 
-    // Filtrar y ordenar evaluaciones del aspirante
+    // se filtran y ordenan las evaluaciones del aspirante
     const evaluacionesLimpias = (Array.isArray(fila.evaluaciones) ? fila.evaluaciones : [])
       .filter((e) => e && e.materia)
       .sort((a, b) => {
@@ -590,14 +598,15 @@ export class ConsultasNeo4jService {
         return (a.intento || 0) - (b.intento || 0);
       });
 
-    // se conectan las evaluaciones y materias del aspirante
+    // se recorren las evaluaciones y materias del aspirante
     if (evaluacionesLimpias.length > 0) {
-      // Contar intentos por materia para distribuir aristas paralelas curvas si hay varios intentos
+      // se cuenta la cantidad de intentos por materia
       const conteoPorMateria = {};
       for (const ev of evaluacionesLimpias) {
         conteoPorMateria[ev.materia] = (conteoPorMateria[ev.materia] || 0) + 1;
       }
 
+      // se agregan los nodos de materias y aristas de evaluaciones con curvatura
       const indicePorMateria = {};
       for (const ev of evaluacionesLimpias) {
         const idMateria = `materia:${ev.materia}`;
@@ -607,7 +616,7 @@ export class ConsultasNeo4jService {
         const index = indicePorMateria[ev.materia];
         const total = conteoPorMateria[ev.materia];
 
-        // Curvatura balanceada para que múltiples intentos no se sobrepongan
+        // se calcula la curvatura para evitar que se sobrepongan las aristas
         let roundness = 0;
         let smoothType = 'curvedCW';
         if (total > 1) {
@@ -635,7 +644,7 @@ export class ConsultasNeo4jService {
       }
     }
 
-    // Datos demográficos estructurados para visualización de ficha de perfil
+    // se estructuran los datos demograficos del aspirante
     const datosAspirante = {
       correlativo_aspirante: fila.correlativo,
       carrera_objetivo: fila.carrera,

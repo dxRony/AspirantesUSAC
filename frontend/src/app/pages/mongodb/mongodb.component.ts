@@ -25,7 +25,7 @@ export class MongodbComponent implements OnInit, OnDestroy {
   configGrafico = signal<ConfiguracionGraficoMongo | null>(null);
   private chart: any = null;
 
-  // Parámetros y filtros como propiedades estándar compatibles al 100% con [(ngModel)]
+  // parametros y filtros
   parametroInput: string = '';
   filtroAnio: string = '';
   filtroCarrera: string = '';
@@ -33,7 +33,7 @@ export class MongodbComponent implements OnInit, OnDestroy {
   filtroDepto: string = '';
   filtroSexo: string = '';
 
-  // Catálogos para selectores
+  // catalogos para los selects
   aniosDisponibles: number[] = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
 
   carrerasDisponibles: string[] = [
@@ -90,7 +90,6 @@ export class MongodbComponent implements OnInit, OnDestroy {
   resultado = signal<any>(null);
   error = signal<string | null>(null);
 
-  // 20 consultas analíticas
   consultas: DefinicionConsulta[] = [
     { id: 1, titulo: '1. Aspirantes por tipo de institución educativa', descripcion: 'Cantidad de aspirantes únicos agrupados por tipo de institución educativa.' },
     { id: 2, titulo: '2. Cantidad de aprobados por materia', descripcion: 'Cantidad total de evaluaciones aprobadas agrupadas por materia.' },
@@ -114,10 +113,7 @@ export class MongodbComponent implements OnInit, OnDestroy {
     { id: 20, titulo: '20. Evolución de aprobación por año de ingreso', descripcion: 'Cantidad y porcentaje de evaluaciones aprobadas y no aprobadas agrupadas por año de ingreso.' },
   ];
 
-  constructor(
-    private readonly apiService: ApiService,
-    @Inject(PLATFORM_ID) private readonly platformId: Object,
-  ) { }
+  constructor(private readonly apiService: ApiService, @Inject(PLATFORM_ID) private readonly platformId: Object,) { }
 
   ngOnInit(): void {
     this.seleccionarPorId(1);
@@ -142,7 +138,7 @@ export class MongodbComponent implements OnInit, OnDestroy {
     this.resultado.set(null);
     this.error.set(null);
 
-    // Reiniciar valores de filtros
+    // reiniciando valores de filtros
     this.parametroInput = '';
     this.filtroAnio = '';
     this.filtroCarrera = '';
@@ -150,7 +146,7 @@ export class MongodbComponent implements OnInit, OnDestroy {
     this.filtroDepto = '';
     this.filtroSexo = '';
 
-    // Si la consulta requiere correlativo (ej. 11 y 15), no ejecutar automáticamente
+    // si la consulta requiere correlativo (11 y 15), no se ejecuta autmaticamente
     if (consulta.requiereParam) {
       return;
     }

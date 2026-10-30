@@ -1,9 +1,13 @@
 import { Inject, Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
 import { Driver, Session, int } from 'neo4j-driver';
-import { CYPHER_CARGA_MASIVA, RESTRICCIONES_DUPLICADOS } from './consultas';
+import { CYPHER_CARGA_MASIVA, RESTRICCIONES_DUPLICADOS } from './scripts';
 
+/**
+ * funcion que limpia parametros que se envian a neo4j para evitar errores de tipos  
+ */
 function sanitizarParametros(parametros: Record<string, any> = {}): Record<string, any> {
   const sanitizado: Record<string, any> = {};
+  //recorriendo los parametros para tipear
   for (const clave of Object.keys(parametros)) {
     const valor = parametros[clave];
     if (typeof valor === 'number' && Number.isInteger(valor)) {
@@ -20,14 +24,10 @@ function sanitizarParametros(parametros: Record<string, any> = {}): Record<strin
  */
 @Injectable()
 export class Neo4jService implements OnApplicationBootstrap, OnApplicationShutdown {
-  // var para registrar los eventos
   private readonly logger = new Logger(Neo4jService.name);
 
   constructor(@Inject('NEO4J_DRIVER') private readonly driver: Driver) { }
 
-  /**
-   * metodo para inicializar las restricciones de duplicados en neo4j
-   */
   async onApplicationBootstrap() {
     await this.inicializarRestricciones();
   }
@@ -58,7 +58,7 @@ export class Neo4jService implements OnApplicationBootstrap, OnApplicationShutdo
   }
 
   /**
-   * metodo para insertar o actualiza un lote de registros en neo4j mediante UNWIND y MERGE en una única transacción.
+   * metodo para insertar o actualizar un lote de registros en neo4j
    */
   async cargarMasiva(lote: any[]): Promise<void> {
     if (!lote || lote.length === 0) return;
@@ -93,22 +93,6 @@ export class Neo4jService implements OnApplicationBootstrap, OnApplicationShutdo
   }
 
   /**
-   * metodo para ejecutar una consulta Cypher de escritura.
-   */
-  async escribir<T = any>(consulta: string, parametros: Record<string, any> = {}): Promise<T[]> {
-    const sesion = this.driver.session();
-    const paramsSanitizados = sanitizarParametros(parametros);
-    try {
-      const resultado = await sesion.executeWrite(async (transaccion) => {
-        return await transaccion.run(consulta, paramsSanitizados);
-      });
-      return resultado.records.map((registro) => registro.toObject() as T);
-    } finally {
-      await sesion.close();
-    }
-  }
-
-  /**
    * metodo para eliminar todos los nodos y relaciones en la base de datos Neo4j.
    */
   async limpiarGrafo(): Promise<void> {
@@ -121,9 +105,5 @@ export class Neo4jService implements OnApplicationBootstrap, OnApplicationShutdo
     } finally {
       await sesion.close();
     }
-  }
-
-  obtenerDriver(): Driver {
-    return this.driver;
   }
 }

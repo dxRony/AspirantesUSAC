@@ -31,13 +31,13 @@ export class EtlController {
     AnyFilesInterceptor({
       storage: diskStorage({
         destination: os.tmpdir(),
-        filename: (req, archivo, callback) => {
+        filename: (_req, archivo, callback) => {
           const sufijoUnico = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
           const extension = path.extname(archivo.originalname) || '.csv';
           callback(null, `aspirantes-${sufijoUnico}${extension}`);
         },
       }),
-      fileFilter: (req, archivo, callback) => {
+      fileFilter: (_req, archivo, callback) => {
         const esCsv = path.extname(archivo.originalname).toLowerCase() === '.csv';
         if (esCsv) {
           callback(null, true);

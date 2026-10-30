@@ -13,6 +13,7 @@ const csv = (csvParser as any).default || csvParser;
 const TAMANIO_LOTE = 500;
 const MAX_ERRORES_REGISTRADOS = 500;
 
+//interfaz para el resultado de validacion
 interface ResultadoValidacion {
   valido: boolean;
   error?: string;
@@ -33,7 +34,7 @@ export class EtlService {
 
   /**
    * metodo para procesar un archivo CSV validando y transformando
-   * los registros e insertándolos en lotes en mongoDB y neo4j.
+   * los registros e insertandolos en lotes en mongoDB y neo4j.
    */
   async procesarArchivoCsv(archivo: Express.Multer.File): Promise<CargaHistorialDocument> {
     if (!archivo || !archivo.path) {
@@ -54,13 +55,12 @@ export class EtlService {
         try {
           fs.unlinkSync(archivo.path);
         } catch {
-          // ignorar error al eliminar archivo temporal
         }
       }
       throw new BadRequestException(`El archivo '${nombreOriginal}' ya fue cargado previamente.`);
     }
 
-    // creando registro inicial de auditoría en cargas_historial
+    // creando registro inicial de auditoria en cargas_historial
     const registroCarga = new this.modeloCargaHistorial({
       nombre_archivo: nombreOriginal,
       total_leidos: 0,
@@ -72,6 +72,7 @@ export class EtlService {
       fecha_fin: null,
       errores: [],
     });
+
     await registroCarga.save();
 
     let totalLeidos = 0;
@@ -129,7 +130,7 @@ export class EtlService {
         }
       }
 
-      // Procesar remanentes finales
+      // procesando remanentes finales
       if (loteMongo.length > 0) {
         await this.guardarLotes(loteMongo, loteNeo4j);
         loteMongo = [];
@@ -204,7 +205,9 @@ export class EtlService {
     // validacion de correlativo de aspirante
     const correlativo = String(filaCruda['correlativo_aspirante'] || '').trim();
     if (!correlativo) {
-      return { valido: false, error: 'Campo obligatorio ausente: correlativo_aspirante' };
+      return {
+        valido: false, error: 'Campo obligatorio ausente: correlativo_aspirante'
+      };
     }
 
     // validacion de fecha de asignacion y extraer mes
@@ -220,12 +223,12 @@ export class EtlService {
       return { valido: false, error: 'Campo obligatorio ausente: materia' };
     }
 
-    // validando numero de fecha de evaluacion (intento)
+    // validando numero de fecha de evaluacion
     const numeroIntento = parseInt(String(filaCruda['numero_de_fecha_de_evaluacion'] || filaCruda['numero_de_fecha_de_evaluaci'] || '').trim(), 10);
     if (isNaN(numeroIntento) || numeroIntento <= 0) {
       return {
         valido: false,
-        error: `Número de fecha de evaluación (intento) inválido: "${filaCruda['numero_de_fecha_de_evaluacion']}"`,
+        error: `Número de fecha de evaluación inválido: "${filaCruda['numero_de_fecha_de_evaluacion']}"`,
       };
     }
 
@@ -247,7 +250,9 @@ export class EtlService {
       aprobacionNormalizada = 'APROBADO';
       esAprobado = true;
     } else {
-      return { valido: false, error: `Resultado de aprobación no reconocido: "${aprobacionCruda}"` };
+      return {
+        valido: false, error: `Resultado de aprobación no reconocido: "${aprobacionCruda}"`
+      };
     }
 
     // normalizando anio de nacimiento y calculando edad
@@ -255,12 +260,7 @@ export class EtlService {
     let edad: number | null = null;
     const nacimientoCrudo = String(filaCruda['anio_nacimiento'] || '').trim().toUpperCase();
 
-    if (
-      nacimientoCrudo &&
-      nacimientoCrudo !== 'SIN REGISTRO' &&
-      nacimientoCrudo !== 'NULL' &&
-      nacimientoCrudo !== 'NO REGISTRADO'
-    ) {
+    if (nacimientoCrudo && nacimientoCrudo !== 'SIN REGISTRO' && nacimientoCrudo !== 'NULL' && nacimientoCrudo !== 'NO REGISTRADO') {
       const anioParsed = parseInt(nacimientoCrudo, 10);
       if (!isNaN(anioParsed) && anioParsed > 1940 && anioParsed <= new Date().getFullYear()) {
         anioNacimiento = anioParsed;
@@ -291,11 +291,12 @@ export class EtlService {
     const esPublica = this.clasificarInstitucionPublica(tipoInstitucion);
 
     // normalizando ubicacion geografica
+    //normalizando depto
     let departamento = String(filaCruda['departamento_institucion_educativa'] || '').trim().toUpperCase();
     if (!departamento || departamento === 'NULL') {
       departamento = 'NO REGISTRADO';
     }
-
+    //normalizando municipui
     let municipio = String(filaCruda['municipio_institucion_educativa'] || '').trim().toUpperCase();
     if (!municipio || municipio === 'NULL') {
       municipio = 'NO REGISTRADO';
@@ -388,9 +389,7 @@ export class EtlService {
     };
 
     return {
-      valido: true,
-      documentoMongo,
-      documentoNeo4j
+      valido: true, documentoMongo, documentoNeo4j
     };
   }
 
@@ -504,13 +503,9 @@ export class EtlService {
   /**
    * metodo para obtener el historial de cargas realizadas ordenadas descendentemente por fecha.
    */
-  async obtenerHistorial(limite = 50): Promise<CargaHistorial[]> {
-    return this.modeloCargaHistorial
-      .find()
-      .sort({ fecha_inicio: -1 })
-      .limit(limite)
-      .select('-errores.datos_crudos')
-      .exec();
+  async obtenerHistorial(limite = 30): Promise<CargaHistorial[]> {
+    //consulta y retorna las ultimas 30 cargas 
+    return this.modeloCargaHistorial.find().sort({ fecha_inicio: -1 }).limit(limite).select('-errores.datos_crudos').exec();
   }
 
   /**

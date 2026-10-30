@@ -30,9 +30,7 @@ import { ConsultasNeo4jModule } from './consultas-neo4j/consultas-neo4j.module';
   providers: [AppService],
 })
 export class AppModule implements OnModuleInit {
-  constructor(private readonly configService: ConfigService) { }
-
   async onModuleInit() {
-    console.log('Módulo Principal Inicializado con soporte para MongoDB, Neo4j, ETL, Consultas Analíticas y Grafos.');
+    console.log('Modulo principal iniciado.');
   }
 }

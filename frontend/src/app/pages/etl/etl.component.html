@@ -57,38 +57,45 @@
 
       <div *ngIf="cargando()" class="loading-state">
         <div class="spinner"></div>
-        <p>Procesando e indexando registros en MongoDB y Neo4j...</p>
+        <p>Procesando registros en MongoDB y Neo4j...</p>
       </div>
 
       <div *ngIf="resultadoCarga() && !cargando()" class="metrics-details">
         <div class="metric-row">
           <span class="m-label">Archivo:</span>
-          <span class="m-val highlight">{{ resultadoCarga()?.nombre_archivo || resultadoCarga()?.datos?.nombre_archivo }}</span>
+          <span class="m-val highlight">{{ resultadoCarga()?.nombre_archivo || resultadoCarga()?.datos?.nombre_archivo
+            }}</span>
         </div>
         <div class="metric-row">
           <span class="m-label">Estado:</span>
-          <span class="m-badge" [class.success]="(resultadoCarga()?.estado || resultadoCarga()?.datos?.estado) === 'COMPLETADO'">
+          <span class="m-badge"
+            [class.success]="(resultadoCarga()?.estado || resultadoCarga()?.datos?.estado) === 'COMPLETADO'">
             {{ resultadoCarga()?.estado || resultadoCarga()?.datos?.estado }}
           </span>
         </div>
         <div class="metric-row">
           <span class="m-label">Tiempo Utilizado:</span>
-          <span class="m-val">{{ resultadoCarga()?.tiempo_utilizado_ms ?? resultadoCarga()?.datos?.tiempo_utilizado_ms }} ms</span>
+          <span class="m-val">{{ resultadoCarga()?.tiempo_utilizado_ms ?? resultadoCarga()?.datos?.tiempo_utilizado_ms
+            }} ms</span>
         </div>
         <div class="metric-row">
           <span class="m-label">Total Leídos:</span>
-          <span class="m-val">{{ (resultadoCarga()?.total_leidos ?? resultadoCarga()?.datos?.total_leidos) | number }}</span>
+          <span class="m-val">{{ (resultadoCarga()?.total_leidos ?? resultadoCarga()?.datos?.total_leidos) | number
+            }}</span>
         </div>
         <div class="metric-row">
           <span class="m-label">Correctos (Insertados):</span>
-          <span class="m-val text-success">{{ (resultadoCarga()?.total_procesados ?? resultadoCarga()?.datos?.total_procesados) | number }}</span>
+          <span class="m-val text-success">{{ (resultadoCarga()?.total_procesados ??
+            resultadoCarga()?.datos?.total_procesados) | number }}</span>
         </div>
         <div class="metric-row">
           <span class="m-label">Rechazados / Errores:</span>
-          <span class="m-val text-danger">{{ (resultadoCarga()?.total_rechazados ?? resultadoCarga()?.datos?.total_rechazados) | number }}</span>
+          <span class="m-val text-danger">{{ (resultadoCarga()?.total_rechazados ??
+            resultadoCarga()?.datos?.total_rechazados) | number }}</span>
         </div>
 
-        <div *ngIf="(resultadoCarga()?.errores?.length > 0) || (resultadoCarga()?.datos?.errores?.length > 0)" class="errors-preview">
+        <div *ngIf="(resultadoCarga()?.errores?.length > 0) || (resultadoCarga()?.datos?.errores?.length > 0)"
+          class="errors-preview">
           <h4>Errores Detectados (Primeros registros):</h4>
           <ul>
             <li *ngFor="let err of (resultadoCarga()?.errores || resultadoCarga()?.datos?.errores)?.slice(0, 5)">

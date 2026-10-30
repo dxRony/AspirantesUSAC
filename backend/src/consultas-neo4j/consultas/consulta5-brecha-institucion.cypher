@@ -1,4 +1,4 @@
-// Consulta 5: Rendimiento y Trayectoria por Tipo de Institución
+// Consulta 5: Rendimiento por Tipo de Institución
 MATCH (t:TipoInstitucion)<-[:PROVIENE_DE]-(a:Aspirante)-[:ASPIRA_A]->(c:Carrera)
 WHERE (
   $tipoInstitucion IS NULL OR

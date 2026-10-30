@@ -1,13 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  Inject,
-  OnDestroy,
-  OnInit,
-  PLATFORM_ID,
-  ViewChild,
-  signal,
-} from '@angular/core';
+import { Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild, signal, } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -31,7 +22,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
 
   consultaSeleccionada = signal<number>(1);
 
-  // Filtros interactivos como propiedades directas
+  // filtros interactivos
   filtroCarrera: string = '';
   filtroDepartamento: string = 'GUATEMALA';
   filtroTipoInst: string = '';
@@ -40,7 +31,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
   filtroCorrelativo: string = '';
   filtroLimite: number = 40;
 
-  // Catálogos para selectores
+  // catalogos para selects
   aniosDisponibles: number[] = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
 
   carrerasDisponibles: string[] = [
@@ -93,7 +84,6 @@ export class Neo4jComponent implements OnInit, OnDestroy {
     { valor: 'SIN DATOS', etiqueta: 'Solo Sin Datos' },
   ];
 
-  limitesDisponibles: number[] = [20, 40, 60, 100];
   intentosDisponibles: number[] = [2, 3, 4, 5];
 
   cargando = signal<boolean>(false);
@@ -150,7 +140,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
   constructor(
     private readonly apiService: ApiService,
     @Inject(PLATFORM_ID) private readonly platformId: Object,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.cambiarConsulta(1);
@@ -168,7 +158,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.resultado.set(null);
 
-    // Reiniciar filtros específicos
+    // reiniciando los filtros
     this.filtroCarrera = '';
     this.filtroDepartamento = Number(id) === 2 ? 'GUATEMALA' : '';
     this.filtroTipoInst = '';
@@ -177,7 +167,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
     this.filtroMinIntentos = 2;
     this.filtroLimite = 40;
 
-    // Si es la consulta 6 (Ego-network), no ejecutar automáticamente hasta que ingrese correlativo
+    // Si es la consulta 6, no se ejecuta hasta que se ingrese el correlativo
     if (Number(id) === 6) {
       return;
     }
@@ -261,31 +251,31 @@ export class Neo4jComponent implements OnInit, OnDestroy {
     try {
       const { Network } = await import('vis-network/standalone');
 
-      // Mapeo estilizado Barça para Vis.js
+      // dando colores y formas a los nodos
       const nodes = datosGrafo.nodes.map((n: any) => {
-        let color = '#004D98'; // Barça Blue
+        let color = '#004D98';
         let shape = 'dot';
         let size = 20;
 
         if (n.group === 'Carrera') {
-          color = '#004D98'; // Azul
+          color = '#004D98';
           shape = 'box';
           size = 25;
         } else if (n.group === 'Materia') {
-          color = '#A50044'; // Grana/Rojo
+          color = '#A50044';
           shape = 'ellipse';
           size = 22;
         } else if (n.group === 'AspiranteCentral' || n.group === 'Aspirante') {
-          color = '#FFC107'; // Amarillo Barça
+          color = '#FFC107';
           shape = 'diamond';
           size = 28;
         } else if (n.group === 'Departamento') {
-          color = '#28a745'; // Verde
+          color = '#28a745';
           shape = 'hexagon';
         } else if (n.group === 'Municipio') {
-          color = '#17a2b8'; // Cyan
+          color = '#17a2b8';
         } else if (n.group?.startsWith('Institucion')) {
-          color = '#6f42c1'; // Púrpura
+          color = '#6f42c1';
         }
 
         return {
@@ -303,16 +293,18 @@ export class Neo4jComponent implements OnInit, OnDestroy {
         };
       });
 
-      // Identificar consulta activa para optimizaciones de layout
+      // Identificar consulta activa
       const idConsulta = this.consultaSeleccionada();
+
       // Las consultas de flujo dirigido (1: Materia->Carrera, 2: Depto->Muni->Carrera, 3: Materia->Carrera, 5: Inst->Carrera)
-      // se presentan en layout jerárquico horizontal para garantizar orden y cero rebotes
+      // se presentan en layout jerárquico horizontal para que no se bugee el grafo
       const esJerarquica = [1, 2, 3, 5].includes(idConsulta);
       const esConsulta2 = idConsulta === 2;
 
+      //definiendo aristas
       const edges = datosGrafo.edges.map((e: any) => {
         const peso = e.weight || e.properties?.aprobados || e.properties?.total_aspirantes || 1;
-        // Grosor proporcional al volumen (más grueso = mayor flujo de aspirantes / aprobados)
+        // dando un grosor proporcional al volumen
         const ancho = esJerarquica ? Math.max(1.5, Math.min(8, Math.log10(peso + 1) * 2.2)) : 1.8;
 
         const colorBorde = e.properties?.color || 'rgba(255, 193, 7, 0.65)';
@@ -330,7 +322,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
         return {
           from: e.from,
           to: e.to,
-          // En consultas jerárquicas con muchas aristas ocultamos texto estático encimado y lo mostramos en hover
+          // con consultas jerárquicas con muchas aristas se oculta el texto encimado
           label: esJerarquica ? '' : (e.label || ''),
           title: e.title || e.label || '',
           arrows: 'to',
@@ -352,7 +344,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
       };
 
       if (esJerarquica) {
-        // Disposición jerárquica horizontal (LR: Left-to-Right) limpia, organizada y sin rebotes
+        // configurando la disposicion jerárquica horizontal para evitar rebotes
         options.layout = {
           hierarchical: {
             enabled: true,
@@ -364,10 +356,10 @@ export class Neo4jComponent implements OnInit, OnDestroy {
           },
         };
         options.physics = {
-          enabled: false, // En layout jerárquico la física oscilante está apagada: estabilidad fija absoluta
+          enabled: false,
         };
       } else {
-        // Para consultas de redes orgánicas (Consulta 4 y 6) usamos ForceAtlas2 suave y estabilización previa
+        // para consultas de redes orgánicas (4 y 6) se usa ForceAtlas2 suave
         options.physics = {
           enabled: true,
           solver: 'forceAtlas2Based',
@@ -393,7 +385,7 @@ export class Neo4jComponent implements OnInit, OnDestroy {
 
       this.network = new Network(this.graphContainer.nativeElement, { nodes, edges }, options);
 
-      // Si la consulta usa física orgánica, congelar la simulación una vez estabilizada para evitar rebotes continuos
+      // si la consulta usa fisica organica se congelaa la simulación para evitar rebotes
       if (!esJerarquica) {
         this.network.once('stabilizationIterationsDone', () => {
           this.network.setOptions({ physics: { enabled: false } });

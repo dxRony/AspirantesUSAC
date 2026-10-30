@@ -1,5 +1,5 @@
 /**
- * interfaz que representa un nodo en el formato estándar de visualización de grafos
+ * interfaz que representa un nodo en formato de visualizacion de grafos
  */
 export interface NodoGrafo {
   id: string;

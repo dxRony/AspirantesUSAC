@@ -6,7 +6,7 @@
     </div>
   </div>
 
-  <!-- Selector de Consultas Único (Dropdown) -->
+  <!-- Selector de Consultas -->
   <div class="queries-nav-card">
     <label class="select-label">Seleccionar Consulta:</label>
     <div class="query-select-row">
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <!-- Filtros Consulta 3: Año y Carrera (Ambos SELECT) -->
+    <!-- Filtros Consulta 3: Año y Carrera -->
     <div *ngIf="consultaSeleccionada()?.id === 3" class="filter-bar">
       <div class="filter-group">
         <label>Año de Ingreso:</label>
@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <!-- Filtros Consulta 7: Carrera y Tipo Institución (Ambos SELECT) -->
+    <!-- Filtros Consulta 7: Carrera y Tipo Institución  -->
     <div *ngIf="consultaSeleccionada()?.id === 7" class="filter-bar">
       <div class="filter-group">
         <label>Carrera Objetivo:</label>
@@ -90,7 +90,7 @@
       </div>
     </div>
 
-    <!-- Filtros Consulta 8: Departamento y Carrera (Ambos SELECT) -->
+    <!-- Filtros Consulta 8: Departamento y Carrera -->
     <div *ngIf="consultaSeleccionada()?.id === 8" class="filter-bar">
       <div class="filter-group">
         <label>Departamento:</label>
@@ -113,7 +113,7 @@
       </div>
     </div>
 
-    <!-- Filtros Consulta 12: Sexo y Tipo Institución (Ambos SELECT) -->
+    <!-- Filtros Consulta 12: Sexo y Tipo Institución -->
     <div *ngIf="consultaSeleccionada()?.id === 12" class="filter-bar">
       <div class="filter-group">
         <label>Sexo:</label>
@@ -207,7 +207,7 @@
       </table>
     </div>
 
-    <!-- Panel de Visualización Gráfica (debajo de la tabla cuando hay gráfica disponible) -->
+    <!-- Panel de Visualización Gráfica  -->
     <div *ngIf="configGrafico()" class="chart-container-card">
       <div class="chart-canvas-wrapper">
         <canvas #chartCanvas></canvas>

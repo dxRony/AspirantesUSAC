@@ -10,7 +10,7 @@
     </div>
   </div>
 
-  <!-- Selector de Consultas Único (Dropdown idéntico a MongoDB) -->
+  <!-- Selector de Consultas  -->
   <div class="queries-nav-card">
     <label class="select-label">Seleccionar Consulta de Grafos:</label>
     <div class="query-select-row">
@@ -59,7 +59,7 @@
         </select>
       </div>
 
-      <!-- Filtro Tipo Institución (Consulta 5) -->
+      <!-- Filtro Tipo Institución -->
       <div *ngIf="tieneFiltro('tipoInstitucion')" class="filter-group">
         <label>Tipo Institución:</label>
         <select [(ngModel)]="filtroTipoInst" (change)="ejecutarConsulta()" class="form-control">
@@ -86,7 +86,7 @@
       </div>
 
 
-      <!-- Filtro Correlativo (Consulta 6) -->
+      <!-- Filtro Correlativo -->
       <div *ngIf="tieneFiltro('correlativo')" class="filter-group filter-group-full">
         <label>Correlativo de Aspirante:</label>
         <div class="param-input-group">
