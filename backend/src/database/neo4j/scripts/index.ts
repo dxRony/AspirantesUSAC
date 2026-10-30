@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * carga el texto de la consulta Cypher desde el archivo: carga-masiva.cypher.
+ * carga el texto de la consulta Cypher desde el archivo: modelo_grafos.cypher.
  */
 export const CYPHER_CARGA_MASIVA = fs.readFileSync(
-    path.join(__dirname, 'carga-masiva.cypher'),
+    path.join(__dirname, 'modelo_grafos.cypher'),
     'utf8',
 );
 
