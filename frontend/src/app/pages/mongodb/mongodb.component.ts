@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { generarConfiguracionGrafico, ConfiguracionGraficoMongo } from './mongodb-chart.helper';
 
 interface DefinicionConsulta {
   id: number;
@@ -17,8 +18,12 @@ interface DefinicionConsulta {
   templateUrl: './mongodb.component.html',
   styleUrl: './mongodb.component.css',
 })
-export class MongodbComponent implements OnInit {
+export class MongodbComponent implements OnInit, OnDestroy {
+  @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
+
   consultaSeleccionada = signal<DefinicionConsulta | null>(null);
+  configGrafico = signal<ConfiguracionGraficoMongo | null>(null);
+  private chart: any = null;
 
   // Parámetros y filtros como propiedades estándar compatibles al 100% con [(ngModel)]
   parametroInput: string = '';
@@ -109,10 +114,17 @@ export class MongodbComponent implements OnInit {
     { id: 20, titulo: '20. Evolución de aprobación por año de ingreso', descripcion: 'Cantidad y porcentaje de evaluaciones aprobadas y no aprobadas agrupadas por año de ingreso.' },
   ];
 
-  constructor(private readonly apiService: ApiService) { }
+  constructor(
+    private readonly apiService: ApiService,
+    @Inject(PLATFORM_ID) private readonly platformId: Object,
+  ) { }
 
   ngOnInit(): void {
     this.seleccionarPorId(1);
+  }
+
+  ngOnDestroy(): void {
+    this.destruirGrafico();
   }
 
   seleccionarPorId(id: number): void {
@@ -123,6 +135,9 @@ export class MongodbComponent implements OnInit {
   }
 
   seleccionarConsulta(consulta: DefinicionConsulta): void {
+    this.destruirGrafico();
+    this.configGrafico.set(null);
+
     this.consultaSeleccionada.set(consulta);
     this.resultado.set(null);
     this.error.set(null);
@@ -141,6 +156,28 @@ export class MongodbComponent implements OnInit {
     }
 
     this.ejecutarConsulta();
+  }
+
+  private destruirGrafico(): void {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+  }
+
+  async renderizarGrafico(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.chartCanvas?.nativeElement) return;
+    const cfg = this.configGrafico();
+    if (!cfg) return;
+
+    try {
+      const { Chart } = await import('chart.js/auto');
+      this.destruirGrafico();
+      this.chart = new Chart(this.chartCanvas.nativeElement, cfg.config);
+    } catch (e) {
+      console.error('Error al instanciar Chart.js:', e);
+    }
   }
 
   limpiarFiltros(): void {
@@ -180,11 +217,17 @@ export class MongodbComponent implements OnInit {
 
     this.cargando.set(true);
     this.error.set(null);
+    this.destruirGrafico();
 
     this.apiService.obtenerConsultaMongo(consulta.id, params).subscribe({
       next: (resp) => {
         this.resultado.set(resp);
         this.cargando.set(false);
+        const cfg = generarConfiguracionGrafico(consulta.id, resp);
+        this.configGrafico.set(cfg);
+        if (cfg) {
+          setTimeout(() => this.renderizarGrafico(), 80);
+        }
       },
       error: (err) => {
         this.error.set(err?.error?.message || 'Error al ejecutar la consulta en MongoDB.');
