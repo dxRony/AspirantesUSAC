@@ -403,7 +403,7 @@ export class EtlService {
     if (!tipo) return false;
     const mayus = tipo.toUpperCase();
     if (/PRIVAD[OA]/i.test(mayus)) return false;
-    return /OFICIAL|NACIONAL|P[UÚ]BLICA|MUNICIPAL|EXPERIMENTAL|COOPERATIVA|INEB|INED|ENCCA|INSTITUTO/i.test(
+    return /OFICIAL|NACIONAL|P[UÚ]BLIC[OA]|MUNICIPAL|EXPERIMENTAL|COOPERATIVA|INEB|INED|ENCCA|INSTITUTO/i.test(
       mayus,
     );
   }

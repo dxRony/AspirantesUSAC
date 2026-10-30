@@ -2,17 +2,13 @@
   <!-- Encabezado -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Consultas Analíticas en MongoDB</h1>
-      <p class="page-subtitle">
-        Agregaciones estadísticas avanzadas, cálculos porcentuales, promedios y generación de la colección auxiliar
-        <code>resumen_carrera</code>.
-      </p>
+      <h1 class="page-title">Consultas en MongoDB</h1>
     </div>
   </div>
 
   <!-- Selector de Consultas Único (Dropdown) -->
   <div class="queries-nav-card">
-    <label class="select-label">Seleccionar Consulta Analítica:</label>
+    <label class="select-label">Seleccionar Consulta:</label>
     <div class="query-select-row">
       <select [ngModel]="consultaSeleccionada()?.id" (ngModelChange)="seleccionarPorId($event)"
         class="form-control query-select">
@@ -30,7 +26,8 @@
         <h2 class="detail-title">{{ consultaSeleccionada()?.titulo }}</h2>
         <p class="detail-desc">{{ consultaSeleccionada()?.descripcion }}</p>
       </div>
-      <button *ngIf="!consultaSeleccionada()?.requiereParam" (click)="ejecutarConsulta()" class="btn-start btn-reload" [disabled]="cargando()">
+      <button *ngIf="!consultaSeleccionada()?.requiereParam" (click)="ejecutarConsulta()" class="btn-start btn-reload"
+        [disabled]="cargando()">
         Recargar
       </button>
     </div>
@@ -39,13 +36,8 @@
     <div *ngIf="consultaSeleccionada()?.id === 11 || consultaSeleccionada()?.id === 15" class="param-bar">
       <label>Correlativo de Aspirante:</label>
       <div class="param-input-group">
-        <input
-          type="text"
-          [(ngModel)]="parametroInput"
-          (keyup.enter)="ejecutarConsulta()"
-          class="form-control"
-          placeholder="Ingresa el correlativo del aspirante..."
-        />
+        <input type="text" [(ngModel)]="parametroInput" (keyup.enter)="ejecutarConsulta()" class="form-control"
+          placeholder="Ingresa el correlativo del aspirante..." />
         <button (click)="ejecutarConsulta()" class="btn-start btn-sm" [disabled]="!parametroInput.trim() || cargando()">
           Buscar
         </button>
@@ -176,22 +168,26 @@
           </div>
           <div class="aspirante-field">
             <span class="field-label">Carrera Objetivo:</span>
-            <span class="field-value highlight-text">{{ resultado().datos_aspirante.carrera_objetivo || 'NINGUNO' }}</span>
+            <span class="field-value highlight-text">{{ resultado().datos_aspirante.carrera_objetivo || 'NINGUNO'
+              }}</span>
           </div>
           <div class="aspirante-field">
             <span class="field-label">Sexo:</span>
-            <span class="field-value">{{ resultado().datos_aspirante.sexo === 'M' ? 'Masculino (M)' : (resultado().datos_aspirante.sexo === 'F' ? 'Femenino (F)' : resultado().datos_aspirante.sexo) }}</span>
+            <span class="field-value">{{ resultado().datos_aspirante.sexo === 'M' ? 'Masculino (M)' :
+              (resultado().datos_aspirante.sexo === 'F' ? 'Femenino (F)' : resultado().datos_aspirante.sexo) }}</span>
           </div>
           <div class="aspirante-field">
             <span class="field-label">Edad / Año Nacimiento:</span>
             <span class="field-value">
               {{ resultado().datos_aspirante.edad ? resultado().datos_aspirante.edad + ' años' : 'Sin registro' }}
-              <span *ngIf="resultado().datos_aspirante.anio_nacimiento">({{ resultado().datos_aspirante.anio_nacimiento }})</span>
+              <span *ngIf="resultado().datos_aspirante.anio_nacimiento">({{ resultado().datos_aspirante.anio_nacimiento
+                }})</span>
             </span>
           </div>
           <div class="aspirante-field">
             <span class="field-label">Procedencia Educativa:</span>
-            <span class="field-value">{{ resultado().datos_aspirante.municipio_institucion_educativa }}, {{ resultado().datos_aspirante.departamento_institucion_educativa }}</span>
+            <span class="field-value">{{ resultado().datos_aspirante.municipio_institucion_educativa }}, {{
+              resultado().datos_aspirante.departamento_institucion_educativa }}</span>
           </div>
           <div class="aspirante-field">
             <span class="field-label">Tipo Institución:</span>

@@ -4,116 +4,99 @@
     <div>
       <h1 class="page-title">Explorador de Grafos en Neo4j</h1>
       <p class="page-subtitle">
-        Visualización de relaciones complejas en tiempo real: recorridos jerárquicos, caminos de aprobación y redes egocéntricas de aspirantes.
+        Visualización de relaciones complejas en tiempo real: recorridos jerárquicos, caminos de aprobación y perfiles
+        integrales de aspirantes.
       </p>
-    </div>
-
-    <!-- Selector de Vista (Grafo vs Tabla) -->
-    <div class="view-toggle-bar">
-      <button
-        (click)="cambiarVista('grafo')"
-        class="toggle-btn"
-        [class.active]="vistaActiva() === 'grafo'"
-      >
-        Vista de Grafo
-      </button>
-      <button
-        (click)="cambiarVista('tabla')"
-        class="toggle-btn"
-        [class.active]="vistaActiva() === 'tabla'"
-      >
-        Métricas Tabulares
-      </button>
     </div>
   </div>
 
-  <!-- Pestañas de Consultas (1 a 6) -->
-  <div class="queries-tabs">
-    <button
-      *ngFor="let q of consultas"
-      (click)="cambiarConsulta(q.id)"
-      class="tab-btn"
-      [class.active]="consultaSeleccionada() === q.id"
-    >
-      <span class="q-badge">#{{ q.id }}</span>
-      <span>{{ q.titulo.split('(')[0] }}</span>
-    </button>
+  <!-- Selector de Consultas Único (Dropdown idéntico a MongoDB) -->
+  <div class="queries-nav-card">
+    <label class="select-label">Seleccionar Consulta de Grafos:</label>
+    <div class="query-select-row">
+      <select [ngModel]="consultaSeleccionada()" (ngModelChange)="cambiarConsulta($event)"
+        class="form-control query-select">
+        <option *ngFor="let q of consultas" [ngValue]="q.id">
+          {{ q.titulo }}
+        </option>
+      </select>
+    </div>
   </div>
 
   <!-- Barra de Filtros Interactivos -->
   <div class="card-barca filters-card">
     <div class="filter-header">
-      <span class="filter-title">Filtros Interactivos para la Consulta #{{ consultaSeleccionada() }}</span>
-      <button (click)="ejecutarConsulta()" class="btn-start btn-apply" [disabled]="cargando()">
-        Aplicar y Renderizar
-      </button>
+      <div>
+        <h2 class="filter-title">Consulta: {{ consultas[consultaSeleccionada() - 1]?.titulo }}</h2>
+        <p class="filter-desc">{{ consultas[consultaSeleccionada() - 1]?.descripcion }}</p>
+      </div>
+      <div class="filter-actions">
+        <button (click)="ejecutarConsulta()" class="btn-start btn-apply" [disabled]="cargando()">
+          Aplicar y Renderizar
+        </button>
+        <button *ngIf="consultaSeleccionada() !== 6" (click)="limpiarFiltros()" class="btn-secondary btn-apply"
+          [disabled]="cargando()">
+          Limpiar Filtros
+        </button>
+      </div>
     </div>
 
     <div class="filters-grid">
       <!-- Filtro Carrera -->
       <div *ngIf="tieneFiltro('carrera')" class="filter-group">
         <label>Carrera Objetivo:</label>
-        <input
-          type="text"
-          [(ngModel)]="filtroCarrera"
-          class="form-control"
-          placeholder="Ej: INGENIERIA CIVIL"
-        />
+        <select [(ngModel)]="filtroCarrera" (change)="ejecutarConsulta()" class="form-control">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
       </div>
 
       <!-- Filtro Departamento -->
       <div *ngIf="tieneFiltro('departamento')" class="filter-group">
         <label>Departamento:</label>
-        <input
-          type="text"
-          [(ngModel)]="filtroDepartamento"
-          class="form-control"
-          placeholder="Ej: GUATEMALA, SACATEPEQUEZ"
-        />
+        <select [(ngModel)]="filtroDepartamento" (change)="ejecutarConsulta()" class="form-control">
+          <option *ngFor="let d of departamentosDisponibles" [value]="d">{{ d }}</option>
+        </select>
+      </div>
+
+      <!-- Filtro Tipo Institución (Consulta 5) -->
+      <div *ngIf="tieneFiltro('tipoInstitucion')" class="filter-group">
+        <label>Tipo Institución:</label>
+        <select [(ngModel)]="filtroTipoInst" (change)="ejecutarConsulta()" class="form-control">
+          <option value="">Todos los tipos</option>
+          <option *ngFor="let t of tiposInstitucionDisponibles" [value]="t.valor">{{ t.etiqueta }}</option>
+        </select>
       </div>
 
       <!-- Filtro Min Intentos -->
       <div *ngIf="tieneFiltro('minIntentos')" class="filter-group">
-        <label>Mínimo de Intentos (>=):</label>
-        <input
-          type="number"
-          min="2"
-          max="5"
-          [(ngModel)]="filtroMinIntentos"
-          class="form-control"
-        />
+        <label>Mínimo de Intentos (&gt;=):</label>
+        <select [(ngModel)]="filtroMinIntentos" (change)="ejecutarConsulta()" class="form-control">
+          <option *ngFor="let i of intentosDisponibles" [ngValue]="i">{{ i }} intentos o más</option>
+        </select>
       </div>
 
       <!-- Filtro Año -->
       <div *ngIf="tieneFiltro('anio')" class="filter-group">
         <label>Año de Ingreso:</label>
-        <input
-          type="text"
-          [(ngModel)]="filtroAnio"
-          class="form-control"
-          placeholder="Ej: 2015"
-        />
-      </div>
-
-      <!-- Filtro Correlativo -->
-      <div *ngIf="tieneFiltro('correlativo')" class="filter-group">
-        <label>Correlativo de Aspirante:</label>
-        <input
-          type="text"
-          [(ngModel)]="filtroCorrelativo"
-          class="form-control"
-          placeholder="Ej: asp_01"
-        />
-      </div>
-
-      <!-- Límite de nodos -->
-      <div *ngIf="tieneFiltro('limite')" class="filter-group">
-        <label>Límite de relaciones:</label>
-        <select [(ngModel)]="filtroLimite" class="form-control">
-          <option [ngValue]="20">20 relaciones</option>
-          <option [ngValue]="40">40 relaciones</option>
-          <option [ngValue]="70">70 relaciones</option>
+        <select [(ngModel)]="filtroAnio" (change)="ejecutarConsulta()" class="form-control">
+          <option value="">Todos los años</option>
+          <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
         </select>
+      </div>
+
+
+      <!-- Filtro Correlativo (Consulta 6) -->
+      <div *ngIf="tieneFiltro('correlativo')" class="filter-group filter-group-full">
+        <label>Correlativo de Aspirante:</label>
+        <div class="param-input-group">
+          <input type="text" [(ngModel)]="filtroCorrelativo" (keyup.enter)="ejecutarConsulta()" class="form-control"
+            placeholder="Ingresa el correlativo del aspirante..." />
+          <button (click)="ejecutarConsulta()" class="btn-start btn-sm"
+            [disabled]="!filtroCorrelativo.trim() || cargando()">
+            Consultar Historial
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -126,57 +109,28 @@
   <!-- Estado de Carga -->
   <div *ngIf="cargando()" class="loading-box">
     <div class="spinner"></div>
-    <p>Ejecutando recorrido Cypher en Neo4j...</p>
+    <p>Ejecutando recorrido y proyección Cypher en Neo4j...</p>
   </div>
 
-  <!-- Área de Visualización: GRAFO INTERACTIVO -->
-  <div [hidden]="vistaActiva() !== 'grafo' || cargando()" class="graph-viewport-card">
-    <div class="graph-legend">
-      <span class="legend-item"><span class="legend-dot blue"></span> Carrera</span>
-      <span class="legend-item"><span class="legend-dot red"></span> Materia</span>
-      <span class="legend-item"><span class="legend-dot yellow"></span> Aspirante</span>
-      <span class="legend-item"><span class="legend-dot green"></span> Departamento</span>
-      <span class="legend-item"><span class="legend-dot cyan"></span> Municipio</span>
-      <span class="legend-item"><span class="legend-dot purple"></span> Institución</span>
-      <span class="legend-stats">
-        Nodos: <strong>{{ resultado()?.grafo?.nodes?.length ?? 0 }}</strong> |
-        Aristas: <strong>{{ resultado()?.grafo?.edges?.length ?? 0 }}</strong>
-      </span>
-    </div>
+  <!-- Contenedor Principal: Vista de Grafo -->
+  <div *ngIf="!cargando() && resultado()" class="results-layout">
+    <div class="graph-viewport-card">
+      <div class="graph-legend">
+        <div class="legend-item"><span class="legend-dot blue"></span> Carrera</div>
+        <div class="legend-item"><span class="legend-dot red"></span> Materia</div>
+        <div class="legend-item"><span class="legend-dot yellow"></span> Aspirante</div>
+        <div class="legend-item"><span class="legend-dot green"></span> Departamento</div>
+        <div class="legend-item"><span class="legend-dot cyan"></span> Municipio</div>
+        <div class="legend-item"><span class="legend-dot purple"></span> Institución</div>
+        <div class="legend-stats">
+          Nodos: <strong>{{ resultado()?.grafo?.nodes?.length ?? 0 }}</strong> |
+          Aristas: <strong>{{ resultado()?.grafo?.edges?.length ?? 0 }}</strong>
+        </div>
+      </div>
 
-    <!-- Contenedor de Vis.js Network -->
-    <div #graphContainer class="vis-network-canvas"></div>
-    <div class="canvas-help-hint">
-      <em>Tip: Puedes hacer zoom con la rueda del ratón, arrastrar nodos o hacer clic para inspeccionar conexiones.</em>
-    </div>
-  </div>
-
-  <!-- Área de Visualización: TABLA DE MÉTRICAS -->
-  <div *ngIf="vistaActiva() === 'tabla' && !cargando()" class="table-results-card">
-    <div class="results-header">
-      <span class="results-count">
-        Registros obtenidos: <strong>{{ resultado()?.total_registros ?? resultado()?.metricas?.length ?? 0 }}</strong>
-      </span>
-      <span class="engine-badge">Neo4j Cypher Traversal</span>
-    </div>
-
-    <div class="table-responsive">
-      <table class="table-barca">
-        <thead>
-          <tr>
-            <th *ngFor="let col of obtenerColumnas(resultado()?.metricas)">
-              {{ col }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let fila of resultado()?.metricas">
-            <td *ngFor="let col of obtenerColumnas(resultado()?.metricas)">
-              {{ fila[col] }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div #graphContainer class="vis-network-canvas"></div>
+      <div class="canvas-help-hint">Arrastra nodos para explorar • Rueda del ratón para hacer zoom • Clic para resaltar
+      </div>
     </div>
   </div>
 </div>

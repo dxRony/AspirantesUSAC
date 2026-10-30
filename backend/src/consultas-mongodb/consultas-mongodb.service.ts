@@ -547,8 +547,6 @@ export class ConsultasMongodbService {
           fecha_asignacion: 1,
           // anio de ingreso
           anio_de_ingreso: 1,
-          // resultado textual de aprobacion
-          aprobacion: 1,
           // estado booleano de si aprobo
           aprobo: 1,
           // carrera objetivo a la que aspira

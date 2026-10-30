@@ -41,4 +41,6 @@ export interface RespuestaConsultaNeo4j<T = any> {
   total_registros: number;
   metricas: T[];
   grafo: ElementosGrafo;
+  datos_aspirante?: any;
+  evaluaciones?: any[];
 }
