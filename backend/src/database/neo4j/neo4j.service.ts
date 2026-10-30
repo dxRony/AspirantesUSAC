@@ -1,6 +1,19 @@
 import { Inject, Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
-import { Driver, Session } from 'neo4j-driver';
+import { Driver, Session, int } from 'neo4j-driver';
 import { CYPHER_CARGA_MASIVA, RESTRICCIONES_DUPLICADOS } from './consultas';
+
+function sanitizarParametros(parametros: Record<string, any> = {}): Record<string, any> {
+  const sanitizado: Record<string, any> = {};
+  for (const clave of Object.keys(parametros)) {
+    const valor = parametros[clave];
+    if (typeof valor === 'number' && Number.isInteger(valor)) {
+      sanitizado[clave] = int(valor);
+    } else {
+      sanitizado[clave] = valor;
+    }
+  }
+  return sanitizado;
+}
 
 /**
  * clase para el manejo de la base de datos neo4j
@@ -68,9 +81,10 @@ export class Neo4jService implements OnApplicationBootstrap, OnApplicationShutdo
    */
   async leer<T = any>(consulta: string, parametros: Record<string, any> = {}): Promise<T[]> {
     const sesion = this.driver.session();
+    const paramsSanitizados = sanitizarParametros(parametros);
     try {
       const resultado = await sesion.executeRead(async (transaccion) => {
-        return await transaccion.run(consulta, parametros);
+        return await transaccion.run(consulta, paramsSanitizados);
       });
       return resultado.records.map((registro) => registro.toObject() as T);
     } finally {
@@ -83,9 +97,10 @@ export class Neo4jService implements OnApplicationBootstrap, OnApplicationShutdo
    */
   async escribir<T = any>(consulta: string, parametros: Record<string, any> = {}): Promise<T[]> {
     const sesion = this.driver.session();
+    const paramsSanitizados = sanitizarParametros(parametros);
     try {
       const resultado = await sesion.executeWrite(async (transaccion) => {
-        return await transaccion.run(consulta, parametros);
+        return await transaccion.run(consulta, paramsSanitizados);
       });
       return resultado.records.map((registro) => registro.toObject() as T);
     } finally {

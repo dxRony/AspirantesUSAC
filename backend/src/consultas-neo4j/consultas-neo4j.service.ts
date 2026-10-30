@@ -149,7 +149,7 @@ export class ConsultasNeo4jService {
     // se retorna la respuesta
     return {
       consulta: 1,
-      titulo: 'Rutas de Aprobación por Carrera (Subgrafo de Éxito)',
+      titulo: 'Rutas de Aprobación por Carrera',
       descripcion:
         'Identifica la red de materias aprobadas requeridas para ingresar a cada carrera y el volumen de aspirantes admitidos.',
       parametros,
@@ -207,20 +207,21 @@ export class ConsultasNeo4jService {
         group: 'Carrera',
       });
 
-      // se agrega la arista de pertenencia del municipio al departamento
+      // se agrega la arista del departamento al municipio (flujo territorial Depto -> Municipio)
       builderGrafo.agregarArista({
-        from: idMuni,
-        to: idDepto,
-        label: 'PERTENECE_A',
+        from: idDepto,
+        to: idMuni,
+        label: 'MUNICIPIO',
+        title: `Departamento: ${fila.departamento} -> Municipio: ${fila.municipio}`,
       });
 
-      // se agrega la arista del flujo de aspirantes a la carrera
+      // se agrega la arista del flujo de aspirantes a la carrera (Municipio -> Carrera)
       builderGrafo.agregarArista({
         from: idMuni,
         to: idCarrera,
         label: `${fila.total_aspirantes} aspirantes`,
         weight: fila.total_aspirantes,
-        title: `Flujo territorial: ${fila.total_aspirantes} aspirantes de ${fila.municipio} hacia ${fila.carrera}`,
+        title: `Flujo territorial: ${Number(fila.total_aspirantes).toLocaleString()} aspirantes de ${fila.municipio} hacia ${fila.carrera}`,
         properties: { total_aspirantes: fila.total_aspirantes },
       });
     }
@@ -258,37 +259,70 @@ export class ConsultasNeo4jService {
     // se crea el grafo
     const builderGrafo = this.crearGrafo();
 
-    // se recorren las metricas
-    for (const fila of metricas) {
-      // se crea un id para la materia y carrera
-      const idMateria = `materia:${fila.materia}`;
-      const idCarrera = `carrera:${fila.carrera}`;
+    // Consolidamos métricas por materia y carrera para evitar que 16 aristas se monten una sobre otra
+    const mapaFlujos = new Map<string, {
+      materia: string;
+      carrera: string;
+      totalReprobados: number;
+      totalAprobados: number;
+      detalles: string[];
+    }>();
 
-      // se agrega el nodo de la materia
+    for (const fila of metricas) {
+      const clave = `${fila.materia}__${fila.carrera}`;
+      if (!mapaFlujos.has(clave)) {
+        mapaFlujos.set(clave, {
+          materia: fila.materia,
+          carrera: fila.carrera,
+          totalReprobados: 0,
+          totalAprobados: 0,
+          detalles: [],
+        });
+      }
+      const flujo = mapaFlujos.get(clave)!;
+      const cant = Number(fila.total_aspirantes) || 0;
+      if (fila.resultado === 'APROBADO' || fila.resultado === 'SATISFACTORIO') {
+        flujo.totalAprobados += cant;
+      } else {
+        flujo.totalReprobados += cant;
+      }
+      flujo.detalles.push(`Intento ${fila.intento} (${fila.resultado}): ${cant.toLocaleString()} aspirantes`);
+    }
+
+    for (const flujo of mapaFlujos.values()) {
+      const idMateria = `materia:${flujo.materia}`;
+      const idCarrera = `carrera:${flujo.carrera}`;
+
       builderGrafo.agregarNodo({
         id: idMateria,
-        label: fila.materia,
+        label: flujo.materia,
         group: 'Materia',
       });
 
-      // se agrega el nodo de la carrera
       builderGrafo.agregarNodo({
         id: idCarrera,
-        label: fila.carrera,
+        label: flujo.carrera,
         group: 'Carrera',
       });
 
-      // se agrega la arista de reintentos entre materia y carrera
+      const totalReintentos = flujo.totalReprobados + flujo.totalAprobados;
+      const tasaReprobacion = totalReintentos > 0
+        ? ((flujo.totalReprobados * 100) / totalReintentos).toFixed(1)
+        : '0.0';
+
       builderGrafo.agregarArista({
+        id: `${idMateria}->${idCarrera}`,
         from: idMateria,
         to: idCarrera,
-        label: `Intento ${fila.intento} (${fila.resultado}): ${fila.total_aspirantes}`,
-        weight: fila.total_aspirantes,
-        title: `${fila.total_aspirantes} aspirantes en intento ${fila.intento} (${fila.resultado}) para ${fila.carrera}`,
+        label: `Cuello: ${flujo.totalReprobados.toLocaleString()} reprobados`,
+        weight: flujo.totalReprobados,
+        title: `Cuello de botella en ${flujo.materia} para ${flujo.carrera}\n\nDesglose por oportunidad:\n${flujo.detalles.join('\n')}`,
         properties: {
-          intento: fila.intento,
-          resultado: fila.resultado,
-          aspirantes: fila.total_aspirantes,
+          materia: flujo.materia,
+          carrera: flujo.carrera,
+          reprobados: flujo.totalReprobados,
+          aprobados: flujo.totalAprobados,
+          tasaReprobacion,
         },
       });
     }
@@ -296,8 +330,8 @@ export class ConsultasNeo4jService {
     // se retorna la respuesta
     return {
       consulta: 3,
-      titulo: 'Cuellos de Botella Académicos y Reintentos Críticos',
-      descripcion: 'Determina las materias con reintentos acumulados (>= 2) y el desenlace final por carrera objetivo.',
+      titulo: 'Cuellos de Botella Académicos',
+      descripcion: 'Identifica las materias donde los aspirantes acumulan 2 o más intentos por carrera.',
       parametros,
       total_registros: metricas.length,
       metricas,
@@ -347,9 +381,9 @@ export class ConsultasNeo4jService {
       builderGrafo.agregarArista({
         from: idMat1,
         to: idMat2,
-        label: `Peso: ${fila.peso_coocurrencia}`,
+        label: `${Number(fila.peso_coocurrencia).toLocaleString()} aspirantes`,
         weight: fila.peso_coocurrencia,
-        title: `${fila.peso_coocurrencia} aspirantes evaluaron conjuntamente ${fila.materia_1} y ${fila.materia_2}`,
+        title: `Evaluación simultánea: ${Number(fila.peso_coocurrencia).toLocaleString()} aspirantes se examinaron conjuntamente de ${fila.materia_1} y ${fila.materia_2}`,
         properties: { peso: fila.peso_coocurrencia },
       });
     }
@@ -357,9 +391,9 @@ export class ConsultasNeo4jService {
     // se retorna la respuesta
     return {
       consulta: 4,
-      titulo: 'Red de Co-evaluación de Materias Concurrentes',
+      titulo: '4. Evaluación Conjunta de Materias',
       descripcion:
-        'Mide la concurrencia y relación entre pares de materias evaluadas simultáneamente por los mismos aspirantes.',
+        'Identifica la cantidad de aspirantes que se examinaron simultáneamente en ambas materias (Matemática y Computación) durante un mismo ciclo de admisión.',
       parametros,
       total_registros: metricas.length,
       metricas,
@@ -408,10 +442,24 @@ export class ConsultasNeo4jService {
       const idCarrera = `carrera:${fila.carrera}`;
 
       // se agrega el nodo del tipo de institucion
+      let etiquetaTipo = fila.tipo_institucion;
+      let grupoTipo = 'Institucion';
+
+      if (fila.tipo_institucion === 'SIN DATOS' || fila.tipo_institucion === 'SIN REGISTRO' || fila.tipo_institucion === 'NO REGISTRADO') {
+        etiquetaTipo = 'SIN DATOS';
+        grupoTipo = 'Institucion';
+      } else if (fila.es_publica === true || fila.tipo_institucion === 'PUBLICO') {
+        etiquetaTipo = `${fila.tipo_institucion} (Pública)`;
+        grupoTipo = 'InstitucionPublica';
+      } else if (fila.es_publica === false || fila.tipo_institucion === 'PRIVADO') {
+        etiquetaTipo = `${fila.tipo_institucion} (Privada)`;
+        grupoTipo = 'InstitucionPrivada';
+      }
+
       builderGrafo.agregarNodo({
         id: idTipo,
-        label: `${fila.tipo_institucion} (${fila.es_publica ? 'Pública' : 'Privada'})`,
-        group: fila.es_publica ? 'InstitucionPublica' : 'InstitucionPrivada',
+        label: etiquetaTipo,
+        group: grupoTipo,
       });
 
       // se agrega el nodo de la carrera
@@ -450,7 +498,7 @@ export class ConsultasNeo4jService {
   }
 
   /**
-   * Consulta 6: Red Egocéntrica de un Aspirante
+   * Consulta 6: Historial y Trayectoria del Aspirante
    * Esta consulta muestra los datos completos de un aspirante usando su correlativo.
    */
   async consulta6_egoNetworkAspirante(correlativo: string): Promise<RespuestaConsultaNeo4j> {
@@ -476,15 +524,18 @@ export class ConsultasNeo4jService {
 
     // se crea y agrega el nodo central del aspirante
     const idAspirante = `aspirante:${fila.correlativo}`;
+    const textoEdad = fila.edad ? `${fila.edad} años` : 'N/A';
+    const textoNacimiento = fila.anio_nacimiento ? ` (${fila.anio_nacimiento})` : '';
     builderGrafo.agregarNodo({
       id: idAspirante,
       label: `Aspirante: ${fila.correlativo.substring(0, 8)}...`,
       group: 'AspiranteCentral',
-      title: `Aspirante: ${fila.correlativo}\nSexo: ${fila.sexo || 'N/A'}\nEdad: ${fila.edad || 'N/A'}`,
+      title: `Aspirante: ${fila.correlativo}\nSexo: ${fila.sexo || 'N/A'}\nEdad: ${textoEdad}${textoNacimiento}`,
       properties: {
         correlativo: fila.correlativo,
         sexo: fila.sexo,
         edad: fila.edad,
+        anio_nacimiento: fila.anio_nacimiento,
       },
     });
 
@@ -498,10 +549,22 @@ export class ConsultasNeo4jService {
     // se conecta el nodo del tipo de institucion si existe
     if (fila.tipo_institucion) {
       const idTipo = `tipo_institucion:${fila.tipo_institucion}`;
+      let labelTipo = fila.tipo_institucion;
+      let groupTipo = 'Institucion';
+      if (fila.tipo_institucion === 'SIN DATOS' || fila.tipo_institucion === 'SIN REGISTRO' || fila.tipo_institucion === 'NO REGISTRADO') {
+        labelTipo = 'SIN DATOS';
+      } else if (fila.es_publica === true || fila.tipo_institucion === 'PUBLICO') {
+        labelTipo = `${fila.tipo_institucion} (Pública)`;
+        groupTipo = 'InstitucionPublica';
+      } else if (fila.es_publica === false || fila.tipo_institucion === 'PRIVADO') {
+        labelTipo = `${fila.tipo_institucion} (Privada)`;
+        groupTipo = 'InstitucionPrivada';
+      }
+
       builderGrafo.agregarNodo({
         id: idTipo,
-        label: `${fila.tipo_institucion} (${fila.es_publica ? 'Pública' : 'Privada'})`,
-        group: fila.es_publica ? 'InstitucionPublica' : 'InstitucionPrivada',
+        label: labelTipo,
+        group: groupTipo,
       });
       builderGrafo.agregarArista({ from: idAspirante, to: idTipo, label: 'PROVIENE_DE' });
     }
@@ -519,29 +582,81 @@ export class ConsultasNeo4jService {
       }
     }
 
+    // Filtrar y ordenar evaluaciones del aspirante
+    const evaluacionesLimpias = (Array.isArray(fila.evaluaciones) ? fila.evaluaciones : [])
+      .filter((e) => e && e.materia)
+      .sort((a, b) => {
+        if (a.materia !== b.materia) return a.materia.localeCompare(b.materia);
+        return (a.intento || 0) - (b.intento || 0);
+      });
+
     // se conectan las evaluaciones y materias del aspirante
-    if (Array.isArray(fila.evaluaciones)) {
-      for (const ev of fila.evaluaciones) {
-        if (!ev.materia) continue;
+    if (evaluacionesLimpias.length > 0) {
+      // Contar intentos por materia para distribuir aristas paralelas curvas si hay varios intentos
+      const conteoPorMateria = {};
+      for (const ev of evaluacionesLimpias) {
+        conteoPorMateria[ev.materia] = (conteoPorMateria[ev.materia] || 0) + 1;
+      }
+
+      const indicePorMateria = {};
+      for (const ev of evaluacionesLimpias) {
         const idMateria = `materia:${ev.materia}`;
         builderGrafo.agregarNodo({ id: idMateria, label: ev.materia, group: 'Materia' });
+
+        indicePorMateria[ev.materia] = (indicePorMateria[ev.materia] || 0) + 1;
+        const index = indicePorMateria[ev.materia];
+        const total = conteoPorMateria[ev.materia];
+
+        // Curvatura balanceada para que múltiples intentos no se sobrepongan
+        let roundness = 0;
+        let smoothType = 'curvedCW';
+        if (total > 1) {
+          const offset = index - (total + 1) / 2;
+          roundness = Math.abs(offset) * 0.22 + 0.1;
+          smoothType = offset < 0 ? 'curvedCCW' : 'curvedCW';
+        }
+
+        const colorArista = ev.aprobo ? '#28a745' : '#dc3545';
+        const textoAprobado = ev.resultado || (ev.aprobo ? 'APROBADO' : 'NO APROBADO');
+        const fechaTexto = ev.fecha_asignacion || ev.fecha || '';
+
         builderGrafo.agregarArista({
           from: idAspirante,
           to: idMateria,
-          label: `Intento ${ev.intento}: ${ev.resultado}`,
-          title: `Intento: ${ev.intento}, Resultado: ${ev.resultado}`,
-          properties: ev,
+          label: `Intento ${ev.intento}: ${textoAprobado}`,
+          title: `Materia: ${ev.materia}\nIntento: ${ev.intento}\nAño de Ingreso: ${ev.anio_de_ingreso || ev.anio || 'N/A'}\nFecha: ${fechaTexto}\nResultado: ${textoAprobado}\nAprobó: ${ev.aprobo ? 'Sí' : 'No'}`,
+          properties: {
+            ...ev,
+            color: colorArista,
+            roundness,
+            smoothType,
+          },
         });
       }
     }
 
+    // Datos demográficos estructurados para visualización de ficha de perfil
+    const datosAspirante = {
+      correlativo_aspirante: fila.correlativo,
+      carrera_objetivo: fila.carrera,
+      sexo: fila.sexo,
+      edad: fila.edad,
+      anio_nacimiento: fila.anio_nacimiento,
+      municipio_institucion_educativa: fila.municipio,
+      departamento_institucion_educativa: fila.departamento,
+      tipo_institucion_educativa: fila.tipo_institucion,
+      es_publica: fila.es_publica,
+    };
+
     // se retorna la respuesta
     return {
       consulta: 6,
-      titulo: `Red Egocéntrica del Aspirante ${fila.correlativo}`,
-      descripcion: 'Muestra todos los datos completos de un aspirante usando su correlativo.',
+      titulo: `Historial y Trayectoria del Aspirante ${fila.correlativo}`,
+      descripcion: 'Visualización del aspirante conectado a todos sus datos demográficos, académicos y el historial completo de sus evaluaciones.',
       parametros,
-      total_registros: 1,
+      total_registros: evaluacionesLimpias.length,
+      datos_aspirante: datosAspirante,
+      evaluaciones: evaluacionesLimpias,
       metricas: [fila],
       grafo: builderGrafo.obtenerElementos(),
     };

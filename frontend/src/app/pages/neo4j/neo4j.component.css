@@ -26,80 +26,43 @@
   max-width: 750px;
 }
 
-.view-toggle-bar {
-  display: flex;
-  background: rgba(0, 0, 0, 0.35);
-  padding: 0.3rem;
-  border-radius: 12px;
+/* Card de Navegación de Consultas (Estilo exacto de MongoDB) */
+.queries-nav-card {
+  background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.85);
-  padding: 0.5rem 1rem;
-  border-radius: 9px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.toggle-btn.active {
-  background: var(--barca-yellow);
-  color: var(--barca-dark);
-}
-
-/* Tabs */
-.queries-tabs {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.4rem;
   border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  backdrop-filter: blur(10px);
 }
 
-.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 600;
+.select-label {
+  display: block;
   font-size: 0.85rem;
-  padding: 0.5rem 0.9rem;
+  font-weight: 700;
+  color: var(--barca-yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.query-select-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.query-select {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.65rem 1rem;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--barca-yellow);
-}
-
-.tab-btn.active {
-  background: linear-gradient(90deg, rgba(0, 77, 152, 0.9), rgba(165, 0, 68, 0.8));
-  color: var(--barca-white);
-  border: 1px solid var(--barca-yellow);
-}
-
-.q-badge {
-  background: var(--barca-yellow);
+  background-color: rgba(255, 255, 255, 0.95);
   color: var(--barca-dark);
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 0.15rem 0.4rem;
-  border-radius: 6px;
+  width: 100%;
 }
 
-/* Filters */
+/* Tarjeta de Filtros */
 .filters-card {
   padding: 1.25rem 1.5rem;
 }
@@ -107,33 +70,87 @@
 .filter-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 0.75rem;
 }
 
 .filter-title {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.15rem;
+  margin: 0 0 0.2rem 0;
   color: var(--barca-dark);
 }
 
+.filter-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #343a40;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .btn-apply {
-  padding: 0.4rem 1.2rem;
+  padding: 0.5rem 1.3rem;
   font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.btn-secondary {
+  background: #495057;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #343a40;
 }
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
 
 .filter-group label {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #343a40;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
   display: block;
+}
+
+.filter-group select,
+.filter-group input {
+  font-size: 0.9rem;
+}
+
+.filter-group-full {
+  grid-column: 1 / -1;
+  max-width: 600px;
+}
+
+.param-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-sm {
+  padding: 0.5rem 1.4rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 /* Graph Viewport */
@@ -202,40 +219,6 @@
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.6);
   text-align: right;
-}
-
-/* Table View */
-.table-results-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.results-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.results-count {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.engine-badge {
-  background: rgba(0, 77, 152, 0.4);
-  color: #b8daff;
-  border: 1px solid var(--barca-blue);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-}
-
-.table-responsive {
-  max-height: 480px;
-  overflow: auto;
-  border-radius: 12px;
 }
 
 .alert-box.error {

@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ConsultasNeo4jService } from './consultas-neo4j.service';
 
-@Controller('api/consultas-neo4j')
+@Controller('consultas-neo4j')
 export class ConsultasNeo4jController {
   constructor(private readonly consultasNeo4jService: ConsultasNeo4jService) { }
 
@@ -59,6 +59,11 @@ export class ConsultasNeo4jController {
   @Get('6/:correlativo')
   obtenerConsulta6(@Param('correlativo') correlativo: string) {
     return this.consultasNeo4jService.consulta6_egoNetworkAspirante(correlativo);
+  }
+
+  @Get('6')
+  obtenerConsulta6Query(@Query('correlativo') correlativo?: string) {
+    return this.consultasNeo4jService.consulta6_egoNetworkAspirante(correlativo || '');
   }
 
 }
